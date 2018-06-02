@@ -1,7 +1,7 @@
 <?php
-/*
+include "./InternalResponse.php";
 include "./AccesoDatos.php";
-include "./cliente.php";*/
+include "./cliente.php";
 
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
@@ -20,7 +20,10 @@ $app->group('/saludo',function(){
     $this->post('/',function($request,$response,$args){
         $parsedBody = $request->getParsedBody();
         $name = $parsedBody['name'];
-        
+        $cliente = new Cliente();
+        $cliente->GetName($name);
+        $cliente->InsertarElClienteParametros();
+
         $response->getBody()->write("Hello $name");
     });
 });
