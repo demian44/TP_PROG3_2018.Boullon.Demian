@@ -1,12 +1,20 @@
 <?php
+use \Firebase\JWT\JWT;
+
 class PedidoApi extends PedidoRepository implements IApiUsable
 {
+  
+
+
     public function TraerUno($request, $response, $args)
     {
     }
     public function TraerTodos($request, $response, $args)
     {
     }
+    
+    
+    
     public function CargarUno($request,$response,$args)
     {
         $parsedBody = $request->getParsedBody();

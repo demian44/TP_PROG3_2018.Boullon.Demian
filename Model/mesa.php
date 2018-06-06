@@ -1,25 +1,21 @@
 <?php
-/*
- * Los usuarios pueden ser socios o empleados
- */
-class Usuario
-{
-    private $nombre;
+class Mesa
+{    
     private $id;
-    private $tipo;
-     
+    private $codigoMesa;
+    private $estado;
     /// Getters
     public function GetCliente()
     {
-        return $this->nombre;
+        return $this->cliente;
     }
     public function GetId()
     {
         return $this->id;
     }
-    public function GetTipo()
+    public function GetCodigoPedido()
     {
-        return $this->tipo;
+        return $this->codigoPedido;
     }
     public function GetCodigoMesa()
     {
@@ -28,11 +24,11 @@ class Usuario
     // End Getters
 
     ///Setters
-    public function SetCliente($nombre)
+    public function SetCliente($cliente)
     {
         $retorno = false;
-        if (is_string($nombre) && $nombre != "") {
-            $this->nombre = $nombre;
+        if (is_string($cliente) && $cliente != "") {
+            $this->cliente = $cliente;
             $retorno = true;
         }
         return $retorno;
@@ -47,11 +43,11 @@ class Usuario
         return $retorno;
     }
 
-    public function SetTipo($tipo)
+    public function SetCodigoPedido($codigoPedido)
     {
         $retorno = false;
-        if (is_int($tipo) && ($tipo >= 0 || $tipo <= 5)) {
-            $this->tipo = $tipo;
+        if (is_string($codigoPedido) && count_chars($codigoMesa) == 5) {
+            $this->codigoPedido = $codigoPedido;
             $retorno = true;
         }
 
@@ -76,5 +72,3 @@ class Usuario
 
 
 }
-
-?>
