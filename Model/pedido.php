@@ -5,6 +5,10 @@ class Pedido
     private $id;
     private $codigoPedido;
     private $codigoMesa;
+    private $momentoEncargo;
+    private $tiempoEncargo;
+    private $tiempoEstimado;
+    private $tiempoEntregado;
     /// Getters
     public function GetCliente()
     {
@@ -21,6 +25,18 @@ class Pedido
     public function GetCodigoMesa()
     {
         return $this->codigoMesa;
+    }
+    public function GetTiempoEncargo()
+    {
+        return $this->tiempoEncargo;
+    }
+    public function GetTiempoEstimado()
+    {
+        return $this->tiempoEstimado;
+    }
+    public function GetTiempoEntregado()
+    {
+        return $this->tiempoEntregado;
     }
     // End Getters
 
@@ -65,10 +81,36 @@ class Pedido
         return $retorno;
     }
 
-    public function MostrarDatos()
+    public function SetTiempoEncargo($tiempoEncargo)
     {
-        return $this->nombre . " - " . $this->sexo;
+        $retorno = false;
+        if (is_string($tiempoEncargo) && count_chars($tiempoEncargo) == 5) {
+            $this->tiempoEncargo = $tiempoEncargo;
+            $retorno = true;
+        }
+
+        return $retorno;
     }
+    // public function SetTiempoEncargo($tiempoEntregado)
+    // {
+    //     $retorno = false;
+    //     if (is_string($tiempoEntregado) && count_chars($tiempoEntregado) == 5) {
+    //         $this->tiempoEntregado = $tiempoEntregado;
+    //         $retorno = true;
+    //     }
+
+    //     return $retorno;
+    // }
+    public function SetTiempoEstimado($tiempoEstimado)
+    {
+        $retorno = false;
+        if (is_string($tiempoEstimado) && count_chars($tiempoEstimado) == 5) {
+            $this->tiempoEstimado = $tiempoEstimado;
+            $retorno = true;
+        }
+        return $retorno;
+    }
+
 
 
 
