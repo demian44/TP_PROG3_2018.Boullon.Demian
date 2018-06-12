@@ -6,6 +6,7 @@ include_once("./InternalResponse.php");
 //Entidades
 include_once("./Model/pedido.php");
 include_once("./Model/user.php");
+include_once("./Model/tipos.php");
 
 //Repository 
 include_once("./Repository/AccesoDatos.php");
@@ -61,23 +62,7 @@ try {
         $this->post('/validateLogin', \LoginApi::class . ':Login');
 
 
-        $this->post('/chekking', function ($request, $response, $args) {
-
-            try{
-                $header = $request->getHeader("token");
-                $tk = new SecurityToken();
-                $decode = $tk->Decode($header[0]);
-                var_dump($decode);
-            }catch(BeforeValidException $exception){
-                $response->getBody()->write("Error de token: ".$exception->getMessage());
-            }catch(ExpiredException $exception){    
-                $response->getBody()->write("Error de token: ".$exception->getMessage());
-            }catch(SignatureInvalidException $exception){
-                $response->getBody()->write("Error de token: ".$exception->getMessage());
-            }catch(Exception $exception){
-                $response->getBody()->write("Error de token: ".$exception->getMessage());
-            }
-        });
+        $this->post('/chekking',\LoginApi::class.':ValidarMozo');
         
         
         //$this->post('/login', \UserApi::class . ':CargarUno');

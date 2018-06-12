@@ -54,6 +54,47 @@ class LoginApi extends LoginRepository implements IApiUsable
     public function ModificarUno($request, $response, $args)
     {
     }
+    private function ValidarToken($request, $response, $args)
+    {
+        try {
+            $header = $request->getHeader("token");
+            $tk = new SecurityToken();
+            $decodedUser = $tk->Decode($header[0]);
+            return $decodedUser;
+        } catch (BeforeValidException $exception) {
+            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+        } catch (ExpiredException $exception) {
+            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+        } catch (SignatureInvalidException $exception) {
+            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+        } catch (Exception $exception) {
+            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+        }
+    }
+   
+    public function ValidarMozo($request, $response, $args)
+    {
+        $return = false;
+        $this->ValidarToken($request, $response, $args);
+
+        if ($decide["category"] == Category::MOZO) {
+            $return = true;
+        }
+
+        return $return;
+    }
+   
+    public function ValidarSocio($request, $response, $args)
+    {
+        $return = false;
+        $this->ValidarToken($request, $response, $args);
+
+        if ($decide["category"] == Category::SOCIO) {
+            $return = true;
+        }
+
+        return $return;
+    }
 }
 
 ?>
