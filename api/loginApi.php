@@ -30,10 +30,11 @@ class LoginApi extends LoginRepository implements IApiUsable
                 "exp" => time() + 600, // La sesión dura 10 minutos.
                 "nbf" => time()
             );
-            $tk = new SecurityToken();
+            $securityToken = new SecurityToken();
             try {
-                $responseToken = $tk->Encode($token);
-                $response->getBody()->write($responseToken);
+                $responseToken = $securityToken->Encode($token);
+          //      $response->getBody()->writeJson($responseToken);
+                $newResponse = $response->withJson($responseToken, 200);
             } catch (Exception $excption) {
                 $response->getBody()->write($excption->getMessage());
             }
@@ -41,8 +42,8 @@ class LoginApi extends LoginRepository implements IApiUsable
             $response->getBody()->write($loginResponse->GetMessege());
         }
         
-        /*$newResponse = $response->withJson($this,200);
-        return $newResponse;*/
+        $newResponse = $response->withJson($this,200);
+        return $newResponse;
     }
 
     public function CargarUno($request, $response, $args)

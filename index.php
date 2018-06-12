@@ -28,10 +28,7 @@ use \Firebase\JWT\JWT;
 
 require './vendor/autoload.php';
 
-
-try {
-
-    $app = new \Slim\App;
+$app = new \Slim\App;
 
     $app->group('/pedidos', function () {
         $this->get('/{nombre}', function ($request, $response, $args) {
@@ -41,37 +38,35 @@ try {
 
 
         $this->post('/', \PedidoApi::class . ':cargarUno');
-
     });
 
-
     $app->group('/users', function () {
-        $this->get('/{nombre}', function ($request, $response, $args) {
+        $this->post('/{nombre}', function ($request, $response, $args) {
             $nombre = $args['nombre'];
             $response->getBody()->write("Hola $nombre");
         });
+        
+        $this->get('/prueba', function ($request, $response, $args) {
+            $nombre =  "Demian";//$args['nombre'];
+            $response->getBody()->write("Hola $nombre");
 
+            return $response;
+        });
 
         $this->post('/', \UserApi::class . ':CargarUno');
 
-    });
+    })->add();
 
     $app->group('/login', function () {
 
-       
         $this->post('/validateLogin', \LoginApi::class . ':Login');
-
 
         $this->post('/chekking',\LoginApi::class.':ValidarMozo');
         
-        
         //$this->post('/login', \UserApi::class . ':CargarUno');
 
-    });
+    })->add();
 
     $app->run();
 
-} catch (Exception $exception) {
-    echo ("Error: " . $exception->getMessage());
-}
 ?>

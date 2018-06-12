@@ -18,7 +18,6 @@ class UserRepository
             
             $consulta->bindValue(':name', $user->GetName(), PDO::PARAM_STR);
             $consulta->bindValue(':category', $user->GetCategory(), PDO::PARAM_INT);
-            echo "\n\n\ncoso!!!\n\n\n";
             $consulta->bindValue(':user', $user->GetUser(), PDO::PARAM_STR);
             $consulta->bindValue(':password', $user->GetPass(), PDO::PARAM_STR);
 
