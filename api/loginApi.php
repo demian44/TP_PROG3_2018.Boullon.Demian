@@ -13,6 +13,12 @@ class LoginApi extends LoginRepository implements IApiUsable
     }
     public function Login($request, $response, $args)
     {
+        $headers = $request->getHeaders();
+        foreach ($headers as $name => $values) {
+            echo $name . ": " . implode(", ", $values);
+        }
+        
+        
         $parsedBody = $request->getParsedBody();
         $user = new User(
             "",
@@ -20,8 +26,8 @@ class LoginApi extends LoginRepository implements IApiUsable
             $parsedBody['password'],
             ""
         );
-
         $loginResponse = new InternalResponse();
+
         $loginResponse = $this->CheckUser($user);
 
         if ($loginResponse->GetElement()["succesLogin"]) {
@@ -33,8 +39,10 @@ class LoginApi extends LoginRepository implements IApiUsable
             $securityToken = new SecurityToken();
             try {
                 $responseToken = $securityToken->Encode($token);
-          //      $response->getBody()->writeJson($responseToken);
-                $newResponse = $response->withJson($responseToken, 200);
+                $request->withAddedHeader('Category',$responseToken);  // Setteo en el header el tipo
+               
+                $newResponse = $response->withJson([$responseToken, 200,$headers]);
+
             } catch (Exception $excption) {
                 $response->getBody()->write($excption->getMessage());
             }
@@ -42,7 +50,6 @@ class LoginApi extends LoginRepository implements IApiUsable
             $response->getBody()->write($loginResponse->GetMessege());
         }
         
-        $newResponse = $response->withJson($this,200);
         return $newResponse;
     }
 
@@ -72,25 +79,25 @@ class LoginApi extends LoginRepository implements IApiUsable
             $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
         }
     }
-   
+
     public function ValidarMozo($request, $response, $args)
     {
         $return = false;
-        $this->ValidarToken($request, $response, $args);
+        $decodedUser = $this->ValidarToken($request, $response, $args);
 
-        if ($decide["category"] == Category::MOZO) {
+        if ($decodedUser["category"] == Category::MOZO) {
             $return = true;
         }
 
         return $return;
     }
-   
+
     public function ValidarSocio($request, $response, $args)
     {
         $return = false;
-        $this->ValidarToken($request, $response, $args);
+        $decodedUser = $this->ValidarToken($request, $response, $args);
 
-        if ($decide["category"] == Category::SOCIO) {
+        if ($decodedUser["category"] == Category::SOCIO) {
             $return = true;
         }
 

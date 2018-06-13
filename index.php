@@ -22,6 +22,8 @@ include_once("./Api/loginApi.php");
 include_once("./Api/Token/token.php");
 include_once("./Api/Token/token.php");
 
+include_once("./Middleware/loginMiddleware.php");
+
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 use \Firebase\JWT\JWT;
@@ -30,43 +32,41 @@ require './vendor/autoload.php';
 
 $app = new \Slim\App;
 
-    $app->group('/pedidos', function () {
-        $this->get('/{nombre}', function ($request, $response, $args) {
-            $nombre = $args['nombre'];
-            $response->getBody()->write("Hola $nombre");
-        });
-
-
-        $this->post('/', \PedidoApi::class . ':cargarUno');
+$app->group('/pedidos', function () {
+    $this->get('/{nombre}', function ($request, $response, $args) {
+        $nombre = $args['nombre'];
+        $response->getBody()->write("Hola $nombre");
     });
 
-    $app->group('/users', function () {
-        $this->post('/{nombre}', function ($request, $response, $args) {
-            $nombre = $args['nombre'];
-            $response->getBody()->write("Hola $nombre");
-        });
-        
-        $this->get('/prueba', function ($request, $response, $args) {
-            $nombre =  "Demian";//$args['nombre'];
-            $response->getBody()->write("Hola $nombre");
 
-            return $response;
-        });
+    $this->post('/', \PedidoApi::class . ':cargarUno');
+});
 
-        $this->post('/', \UserApi::class . ':CargarUno');
+$app->group('/users', function () {
+    $this->post('/{nombre}', function ($request, $response, $args) {
+        $nombre = $args['nombre'];
+        $response->getBody()->write("Hola $nombre");
+    });
 
-    })->add();
+    $this->get('/prueba', function ($request, $response, $args) {
+        $nombre = "Demian";//$args['nombre'];
+        $response->getBody()->write("Hola $nombre");
 
-    $app->group('/login', function () {
+        return $response;
+    });
 
-        $this->post('/validateLogin', \LoginApi::class . ':Login');
+    $this->post('/', \UserApi::class . ':CargarUno');
 
-        $this->post('/chekking',\LoginApi::class.':ValidarMozo');
-        
-        //$this->post('/login', \UserApi::class . ':CargarUno');
+});
 
-    })->add();
+$app->group('/login', function () {
 
-    $app->run();
+    $this->post('/validateLogin', \LoginApi::class . ':Login');
+
+    $this->post('/chekking', \LoginApi::class . ':ValidarMozo');
+
+})->add(\LoginMiddleware::class . ':ValidarSocio');
+
+$app->run();
 
 ?>

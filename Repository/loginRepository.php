@@ -10,8 +10,8 @@ class LoginRepository
         $response = new InternalResponse();
         $response->SetMessege("Login exitoso");
         try {
-            
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+             
             $consulta = $objetoAccesoDato->RetornarConsulta("SELECT password,category FROM users WHERE user = :user");
             $consulta->execute(array(":user" => $user->GetUser()));
             $row = $consulta->fetch();
