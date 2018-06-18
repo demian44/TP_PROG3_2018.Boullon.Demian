@@ -1,6 +1,6 @@
 <?php
 
-class TIPO_USUARIO
+class USER_TYPE
 {
     const SOCIO = 0;
     const BARTENDER = 1;
@@ -8,6 +8,3 @@ class TIPO_USUARIO
     const COCINERO = 3;
     const MOZO = 4;
 }
-
-
-?>

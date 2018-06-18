@@ -1,48 +1,57 @@
 <?php
+
 class InternalResponse
 {
-    private $errorCode;
+    private $error;
     private $messege;
     private $element;
 
     public function __construct()
     {
-        $this->errorCode = 0;       
+        $this->error = false;
     }
+
     ///Getters
-    public function GetErrorCode()
+    public function GetError()
     {
-        return $this->errorCode;
+        return $this->error;
     }
+
     public function GetMessege()
     {
         return $this->messege;
     }
+
     public function GetElement()
     {
         return $this->element;
     }
+
     //End Getters
 
     ///Setters
-    public function SetErrorCode($errorCode)
+    public function SetError($error)
     {
         $return = false;
-        if ($errorCode != null) {
-            $this->errorCode = $errorCode;
+        if ($error != null) {
+            $this->error = $error;
             $return = true;
         }
+
         return $return;
     }
+
     public function SetMessege($messege)
     {
         $return = false;
-        if ($messege != null && $messege != "") {
+        if ($messege != null && $messege != '') {
             $this->messege = $messege;
             $return = true;
         }
+
         return $return;
     }
+
     public function SetElement($element)
     {
         $return = false;
@@ -50,9 +59,9 @@ class InternalResponse
             $this->element = $element;
             $return = true;
         }
+
         return $return;
     }
+
     // End Setters
-
-
 }

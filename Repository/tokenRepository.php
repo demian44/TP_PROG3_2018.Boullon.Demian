@@ -1,5 +1,5 @@
 <?php
-class LoginRepository
+class TokenRepository
 {
 
     /**
@@ -8,7 +8,7 @@ class LoginRepository
     public function CheckUser($user)
     {
         $response = new InternalResponse();
-        $response->SetMessege("Login exitoso");
+        $response->SetMessege("Token exitoso");
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
              
@@ -17,11 +17,11 @@ class LoginRepository
             $row = $consulta->fetch();
             
             if (isset($row["password"]) && $row["password"] == $user->GetPass()) {
-                $response->SetElement(array("succesLogin" => true,"category"=>$row["category"]));
+                $response->SetElement(array("succesToken" => true,"category"=>$row["category"]));
             }
             else{
                 $response->SetMessege("User o pass incorrecto");
-                $response->SetElement(array("succesLogin" => false));
+                $response->SetElement(array("succesToken" => false));
             }
 
         } catch (PDOException $exception) {

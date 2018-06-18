@@ -1,72 +1,47 @@
 <?php
 
-include_once("./IApiUsable.php");
-include_once("./InternalResponse.php");
+include_once './elements.php';
 
-//Entidades
-include_once("./Model/pedido.php");
-include_once("./Model/user.php");
-include_once("./Model/tipos.php");
+$app = new \Slim\App();
 
-//Repository 
-include_once("./Repository/AccesoDatos.php");
-include_once("./Repository/pedidoRepository.php");
-include_once("./Repository/userRepository.php");
-include_once("./Repository/loginRepository.php");
-
-//Api
-include_once("./Api/pedidoApi.php");
-include_once("./Api/userApi.php");
-include_once("./Api/loginApi.php");
-
-include_once("./Api/Token/token.php");
-include_once("./Api/Token/token.php");
-
-include_once("./Middleware/loginMiddleware.php");
-
-use \Psr\Http\Message\ServerRequestInterface as Request;
-use \Psr\Http\Message\ResponseInterface as Response;
-use \Firebase\JWT\JWT;
-
-require './vendor/autoload.php';
-
-$app = new \Slim\App;
-
-$app->group('/pedidos', function () {
-    $this->get('/{nombre}', function ($request, $response, $args) {
-        $nombre = $args['nombre'];
-        $response->getBody()->write("Hola $nombre");
-    });
-
-
-    $this->post('/', \PedidoApi::class . ':cargarUno');
+$app->group('/mozo', function () {
+    $this->post('/newOrder', \OrderApi::class.':CargarUno');
 });
 
 $app->group('/users', function () {
-    $this->post('/{nombre}', function ($request, $response, $args) {
-        $nombre = $args['nombre'];
-        $response->getBody()->write("Hola $nombre");
+    $this->get('/', function ($request, $response, $args) {
+        $nombre = 'termino';
+        $response->getBody()->write("$nombre");
     });
 
-    $this->get('/prueba', function ($request, $response, $args) {
-        $nombre = "Demian";//$args['nombre'];
-        $response->getBody()->write("Hola $nombre");
-
-        return $response;
-    });
-
-    $this->post('/', \UserApi::class . ':CargarUno');
-
-});
+    $this->post('/', \UserApi::class.':CargarUno');
+})->add(\LoginMiddleware::class.':ValidarToken');
 
 $app->group('/login', function () {
+    $this->post('/validateLogin', \TokenApi::class.':Login');
 
-    $this->post('/validateLogin', \LoginApi::class . ':Login');
-
-    $this->post('/chekking', \LoginApi::class . ':ValidarMozo');
-
-})->add(\LoginMiddleware::class . ':ValidarSocio');
+    $this->post('/chekking', \TokenApi::class.':ValidarMozo');
+})->add(\LoginMiddleware::class.':checkLoginData');
 
 $app->run();
 
+/*
+<?php
+$datetime1 = new DateTime('2009-10-11');
+$datetime2 = new DateTime('2009-10-13');
+$interval = $datetime1->diff($datetime2);
+echo $interval->format('%R%a días');
+ $date = date('Y/m/d H:i');
+
+                    $nuevaHora = date('Y/m/d H:i', time() + 600);
+                    echo "\n";
+                    echo "\n";
+                    echo "\n";
+                    echo "primera fecha: $date";
+                    echo "\n";
+                    echo "nueva fecha: $nuevaHora";
+                    echo "\n";
+                    echo "\n";
+                    echo "\n";
 ?>
+*/

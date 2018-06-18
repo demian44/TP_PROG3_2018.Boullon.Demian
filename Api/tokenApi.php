@@ -1,5 +1,5 @@
 <?php
-class LoginApi extends LoginRepository implements IApiUsable
+class TokenApi extends TokenRepository implements IApiUsable
 {
     public function TraerUno($request, $response, $args)
     {
@@ -13,12 +13,10 @@ class LoginApi extends LoginRepository implements IApiUsable
     }
     public function Login($request, $response, $args)
     {
+        $newResponse = ["Usuario inexistente",-1];
+
         $headers = $request->getHeaders();
-        foreach ($headers as $name => $values) {
-            echo $name . ": " . implode(", ", $values);
-        }
-        
-        
+          
         $parsedBody = $request->getParsedBody();
         $user = new User(
             "",
@@ -26,31 +24,34 @@ class LoginApi extends LoginRepository implements IApiUsable
             $parsedBody['password'],
             ""
         );
+        
         $loginResponse = new InternalResponse();
 
         $loginResponse = $this->CheckUser($user);
-
-        if ($loginResponse->GetElement()["succesLogin"]) {
+        if ($loginResponse->GetElement()["succesToken"]) {
             $token = array(
                 "category" => $loginResponse->GetElement()["category"], //Tipo de usuario
-                "exp" => time() + 600, // La sesión dura 10 minutos.
+                "exp" => time() + 6000, // La sesión dura 10 minutos.
                 "nbf" => time()
             );
+            
             $securityToken = new SecurityToken();
             try {
-                $responseToken = $securityToken->Encode($token);
+                $headers['HTTP_TOKEN'] = $securityToken->Encode($token);
+                $responseToken = $headers['HTTP_TOKEN']; // Guardo el token en el header
+                $headers['category'] = $loginResponse->GetElement()["category"];
                 $request->withAddedHeader('Category',$responseToken);  // Setteo en el header el tipo
-               
-                $newResponse = $response->withJson([$responseToken, 200,$headers]);
+                 $newResponse = $responseToken; 
+                 $result = json_encode([0,$responseToken]);
 
             } catch (Exception $excption) {
-                $response->getBody()->write($excption->getMessage());
+                $result= [-1,$excption->getMessage()];
             }
         } else {
-            $response->getBody()->write($loginResponse->GetMessege());
+            $result =json_encode([-2,$loginResponse->GetMessege()]);
         }
-        
-        return $newResponse;
+
+        $response->getBody()->write($result);
     }
 
     public function CargarUno($request, $response, $args)
@@ -62,30 +63,42 @@ class LoginApi extends LoginRepository implements IApiUsable
     public function ModificarUno($request, $response, $args)
     {
     }
-    private function ValidarToken($request, $response, $args)
+    public function ValidarToken($request, $response, $args)
     {
+        $return = false;
         try {
             $header = $request->getHeader("token");
             $tk = new SecurityToken();
             $decodedUser = $tk->Decode($header[0]);
-            return $decodedUser;
+            echo "      decode     ";
+            $headers = $request->getHeaders();
+            var_dump($decodedUser);
+            $headers['category'] = $decodedUser->category;
+            
+            $return = true;
         } catch (BeforeValidException $exception) {
-            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+            echo "wea suprema  1";
+            //$response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
         } catch (ExpiredException $exception) {
-            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+            echo "wea suprema  2";
+            //$response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
         } catch (SignatureInvalidException $exception) {
-            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+            echo "wea suprema  3";
+            //$response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
         } catch (Exception $exception) {
-            $response->getBody()->write(json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
+            echo "wea suprema  4";
+            $response->getBody()->write("Error");
+                //json_encode(['code' => -1, 'messege' => "Error de token: " . $exception->getMessage()]));
         }
+
+        return $return;
     }
 
     public function ValidarMozo($request, $response, $args)
     {
         $return = false;
-        $decodedUser = $this->ValidarToken($request, $response, $args);
-
-        if ($decodedUser["category"] == Category::MOZO) {
+        
+        if ($headers["category"] == Category::MOZO) {
             $return = true;
         }
 
@@ -95,9 +108,8 @@ class LoginApi extends LoginRepository implements IApiUsable
     public function ValidarSocio($request, $response, $args)
     {
         $return = false;
-        $decodedUser = $this->ValidarToken($request, $response, $args);
-
-        if ($decodedUser["category"] == Category::SOCIO) {
+        
+        if ($headers["category"] == Category::SOCIO) {
             $return = true;
         }
 

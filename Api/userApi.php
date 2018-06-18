@@ -1,16 +1,20 @@
 <?php
+
 class UserApi extends UserRepository implements IApiUsable
 {
     public function TraerUno($request, $response, $args)
     {
     }
+
     public function Ver($request, $response, $args)
     {
-        $response->getBody()->write("Hola");
+        $response->getBody()->write('Hola');
     }
+
     public function TraerTodos($request, $response, $args)
     {
     }
+
     public function CargarUno($request, $response, $args)
     {
         $parsedBody = $request->getParsedBody();
@@ -20,18 +24,15 @@ class UserApi extends UserRepository implements IApiUsable
             $parsedBody['password'],
             $parsedBody['category']
         );
-         
-        $this->InsertUser($user);
 
-        /*$newResponse = $response->withJson($this,200);
-        return $newResponse;*/
+        $response = $this->InsertUser($user);
     }
+
     public function BorrarUno($request, $response, $args)
     {
     }
+
     public function ModificarUno($request, $response, $args)
     {
     }
 }
-
-?>
