@@ -7,8 +7,6 @@ class OrderRepository
      */
     public function InsertOrder($order)
     {
-        $response = new InternalResponse();
-        $response->SetMessege('Carga exitosa');
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
             $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO orders (client_name,code,ordered_time,mesa_id)'
@@ -19,8 +17,9 @@ class OrderRepository
             $consulta->bindValue(':mesa_id', $order->GetMesaId(), PDO::PARAM_INT);
 
             if (!$consulta->execute()) { //Si no retorna 1 no guardó el elemento
-                $response->SetMessege('Error al guardar la orden en la base de datos.');
-                $response->SetError(true);
+                $response = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, 'Error al guardar la orden en la base de datos.');
+            } else {
+                $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, 'EXITO');
             }
         } catch (PDOException $exception) {
             throw $exception;

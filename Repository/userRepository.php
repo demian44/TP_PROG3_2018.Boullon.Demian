@@ -1,5 +1,6 @@
 <?php
 
+
 class UserRepository
 {
     /**
@@ -7,8 +8,7 @@ class UserRepository
      */
     public function InsertUser($user)
     {
-        $response = new InternalResponse();
-        $response->SetMessege('Carga exitosa');
+        $result;
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
             $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO users (name,category,user,password)'
@@ -20,16 +20,18 @@ class UserRepository
             $consulta->bindValue(':password', $user->GetPass(), PDO::PARAM_STR);
 
             if (!$consulta->execute()) { //Si no retorna 1 no guardó el elemento
-                $response->SetMessege('Error al guardar al usuario en la base de datos.');
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, 'Error al guardar al usuario en la base de datos.');
+            } else {
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, 'Usuario guardado exitosamente');
+                //aspdajsdpsaod
             }
-            $response->SetError(true);
         } catch (PDOException $exception) {
             throw $exception;
         } catch (Exception $exception) {
             throw $exception;
         }
 
-        return $response;
+        return $result;
     }
 
     public static function ModificarPedido($id, $cliente, $sexo, $cantante)

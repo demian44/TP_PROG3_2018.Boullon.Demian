@@ -1,19 +1,23 @@
 <?php
 
+
 class InternalResponse
 {
-    private $error;
+    private $error; //REQUEST_ERROR_TYPE
     private $messege;
     private $element;
 
     public function __construct()
     {
-        $this->error = false;
+        $this->error = REQUEST_ERROR_TYPE::NOERROR;
     }
 
     ///Getters
     public function GetError()
     {
+        echo "\n----";
+        var_dump($this->error);
+
         return $this->error;
     }
 

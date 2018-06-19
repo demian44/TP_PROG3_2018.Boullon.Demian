@@ -1,5 +1,5 @@
 <?php
-    class Order extends Entity
+    class Order extends Entity implements CodeGenerator
     {
         private $cliente;
         private $code;
@@ -184,7 +184,7 @@
             $caracters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $count = strlen($caracters) - 1;
             //Genero un nuevo string con substrings aleatorios de 1 caracter de largo.
-            return substr($caracters, rand(0, $count), 1).
+            return 'O'.
                         substr($caracters, rand(0, $count), 1). //1
                         substr($caracters, rand(0, $count), 1). //2
                         substr($caracters, rand(0, $count), 1). //3

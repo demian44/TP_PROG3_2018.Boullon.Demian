@@ -4,7 +4,7 @@ include_once './elements.php';
 
 $app = new \Slim\App();
 
-$app->group('/mozo', function () {
+$app->group('/order', function () {
     $this->post('/newOrder', \OrderApi::class.':CargarUno');
 });
 

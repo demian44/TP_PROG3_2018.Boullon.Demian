@@ -1,64 +1,63 @@
 <?php
 
-class Mesa extends Entity
+class Mesa extends Entity implements CodeGenerator
 {
-    private $codigoMesa;
-    private $estado;
+    private $code;
+    private $available;
+
+    public function __construct($code)
+    {
+        $this->SetAvailable(true);
+
+        return $this->SetCode($code);
+    }
 
     /// Getters
-    public function GetCliente()
+    public function GetCode()
     {
-        return $this->cliente;
+        return $this->code;
     }
 
-    public function GetCodigoPedido()
+    public function GetAvailable()
     {
-        return $this->codigoPedido;
-    }
-
-    public function GetCodigoMesa()
-    {
-        return $this->codigoMesa;
+        return $this->available;
     }
 
     // End Getters
 
     ///Setters
-    public function SetCliente($cliente)
+    public function SetCode($code)
     {
         $retorno = false;
-        if (is_string($cliente) && $cliente != '') {
-            $this->cliente = $cliente;
+        if (is_string($code) && count_chars($code) == 5) {
+            $this->code = $code;
             $retorno = true;
         }
 
         return $retorno;
     }
 
-    public function SetCodigoPedido($codigoPedido)
+    public function SetAvailable($available)
     {
         $retorno = false;
-        if (is_string($codigoPedido) && count_chars($codigoMesa) == 5) {
-            $this->codigoPedido = $codigoPedido;
+        if (!is_null($available)) {
+            $this->available = $available;
             $retorno = true;
         }
 
         return $retorno;
     }
 
-    public function SetCodigoMesa($codigoMesa)
+    public static function generateCode()
     {
-        $retorno = false;
-        if (is_string($codigoMesa) && count_chars($codigoMesa) == 5) {
-            $this->codigoMesa = $codigoMesa;
-            $retorno = true;
-        }
-
-        return $retorno;
-    }
-
-    public function MostrarDatos()
-    {
-        return $this->nombre.' - '.$this->sexo;
+        $caracters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $count = strlen($caracters) - 1;
+        //Genero un nuevo string con substrings aleatorios de 1 caracter de largo.
+        return 'M'.
+                    substr($caracters, rand(0, $count), 1). //1
+                    substr($caracters, rand(0, $count), 1). //2
+                    substr($caracters, rand(0, $count), 1). //3
+                    substr($caracters, rand(0, $count), 1). //4
+                    substr($caracters, rand(0, $count), 1); //5
     }
 }

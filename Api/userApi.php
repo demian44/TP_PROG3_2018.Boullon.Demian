@@ -17,15 +17,23 @@ class UserApi extends UserRepository implements IApiUsable
 
     public function CargarUno($request, $response, $args)
     {
-        $parsedBody = $request->getParsedBody();
-        $user = new User(
-            $parsedBody['name'],
-            $parsedBody['user'],
-            $parsedBody['password'],
-            $parsedBody['category']
-        );
+        try {
+            $parsedBody = $request->getParsedBody();
+            $user = new User(
+                $parsedBody['name'],
+                $parsedBody['user'],
+                $parsedBody['password'],
+                $parsedBody['category']
+            );
 
-        $response = $this->InsertUser($user);
+            $requestResponse = $this->InsertUser($user);
+        } catch (PDOException $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($requestResponse->ToJsonResponse());
     }
 
     public function BorrarUno($request, $response, $args)
