@@ -7,21 +7,21 @@ class TokenRepository
      */
     public function CheckUser($user)
     {
-        $response = new InternalResponse();
-        $response->SetMessege("Token exitoso");
+        $response = null;
+
         try {
+
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-             
-            $consulta = $objetoAccesoDato->RetornarConsulta("SELECT password,category FROM users WHERE user = :user");
+            $consulta = $objetoAccesoDato->RetornarConsulta("SELECT password,name FROM users WHERE user = :user");
             $consulta->execute(array(":user" => $user->GetUser()));
             $row = $consulta->fetch();
-            
+
             if (isset($row["password"]) && $row["password"] == $user->GetPass()) {
-                $response->SetElement(array("succesToken" => true,"category"=>$row["category"]));
-            }
-            else{
-                $response->SetMessege("User o pass incorrecto");
-                $response->SetElement(array("succesToken" => false));
+                $perfil = explode("-", $row["name"]);
+                $perfil = $perfil[1];
+                $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $perfil);
+            } else {
+                $response = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "User o pass incorrecto");
             }
 
         } catch (PDOException $exception) {
@@ -38,7 +38,7 @@ class TokenRepository
 
         // $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
 
-        // $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE cds SET titel = :nombre, interpret = :cantante, 
+        // $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE cds SET titel = :nombre, interpret = :cantante,
         //                                                 jahr = :sexo WHERE id = :id");
 
         // $consulta->bindValue(':id', $id, PDO::PARAM_INT);
@@ -64,5 +64,3 @@ class TokenRepository
     }
 
 }
-
-?>

@@ -1,6 +1,5 @@
 <?php
 
-
 class UserRepository
 {
     /**
@@ -10,12 +9,12 @@ class UserRepository
     {
         $result;
         try {
-            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-            $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO users (name,category,user,password)'
-            .'VALUES(:name,:category,:user,:password)');
 
-            $consulta->bindValue(':name', $user->GetName(), PDO::PARAM_STR);
-            $consulta->bindValue(':category', $user->GetCategory(), PDO::PARAM_INT);
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+            $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO users (name,user,password)'
+                . 'VALUES(:name,:user,:password)');
+
+            $consulta->bindValue(':name', $user->GetName() . "-" . $user->GetPerfil(), PDO::PARAM_STR);
             $consulta->bindValue(':user', $user->GetUser(), PDO::PARAM_STR);
             $consulta->bindValue(':password', $user->GetPass(), PDO::PARAM_STR);
 
@@ -32,6 +31,34 @@ class UserRepository
         }
 
         return $result;
+    }
+
+    public static function TraerUsuarios(&$arrayUsuarios)
+    {
+        $return = false;
+        $arrayUsuarios = [];
+        try {
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT name,user FROM users');
+            $row = $consulta->execute();
+
+            foreach ($consulta->fetchAll() as $row) {
+                $array = explode("-", $row["name"]);
+                $user["name"] = $array[0];
+                $user["perfil"] = $array[1];
+                $user["user"] = $row["user"];
+                array_push($arrayUsuarios, $user);
+                $return = true;
+            }
+
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $return;
     }
 
     public static function ModificarPedido($id, $cliente, $sexo, $cantante)

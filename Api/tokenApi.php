@@ -17,8 +17,6 @@ class TokenApi extends TokenRepository implements IApiUsable
 
     public function Login($request, $response, $args)
     {
-        $newResponse = ['Usuario inexistente', -1];
-
         $headers = $request->getHeaders();
 
         $parsedBody = $request->getParsedBody();
@@ -26,35 +24,34 @@ class TokenApi extends TokenRepository implements IApiUsable
             '',
             $parsedBody['user'],
             $parsedBody['password'],
-            ''
+            ""
         );
 
-        $loginResponse = new InternalResponse();
+        $loginResponse = $this->CheckUser($user); // Obtengo un ApiResponse
 
-        $loginResponse = $this->CheckUser($user);
-        if ($loginResponse->GetElement()['succesToken']) {
+        if ($loginResponse->Succes()) { // Metodo devuelve true si no hay error
             $token = array(
-                'category' => $loginResponse->GetElement()['category'], //Tipo de usuario
+                "perfil" => $loginResponse->GetResponse(),
                 'exp' => time() + 6000, // La sesión dura 10 minutos.
                 'nbf' => time(),
             );
 
             $securityToken = new SecurityToken();
             try {
-                $headers['HTTP_TOKEN'] = $securityToken->Encode($token);
-                $responseToken = $headers['HTTP_TOKEN']; // Guardo el token en el header
-                $headers['category'] = $loginResponse->GetElement()['category'];
-                $request->withAddedHeader('Category', $responseToken);  // Setteo en el header el tipo
-                $newResponse = $responseToken;
-                $result = json_encode([REQUEST_ERROR_TYPE::NOERROR, $responseToken]);
+                $encodedToken = $securityToken->Encode($token);
+                // $responseToken = $headers['HTTP_TOKEN']; // Guardo el token en el header
+                // $headers['category'] = $loginResponse->GetElement()['category'];
+                // $request->withAddedHeader('Category', $responseToken);  // Setteo en el header el tipo
+                // $newResponse = $responseToken;
+                $loginResponse->SetResponse($encodedToken);
             } catch (Exception $excption) {
-                $result = [-1, $excption->getMessage()];
+                $loginResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "Error al generar token");
             }
         } else {
             $result = json_encode([REQUEST_ERROR_TYPE::TOKEN, $loginResponse->GetMessege()]);
         }
 
-        $response->getBody()->write($result);
+        $response->getBody()->write($loginResponse->ToJsonResponse());
     }
 
     public function CargarUno($request, $response, $args)
@@ -69,30 +66,29 @@ class TokenApi extends TokenRepository implements IApiUsable
     {
     }
 
-    public function ValidarToken($request, $response, $args)
+    public function ValidarToken($request, $response, $next)
     {
-        $return = false;
+        ///Este nivel de abstraccion no es necesario, mejor resolverlo en MIddleware
         try {
             $header = $request->getHeader('token');
             $tk = new SecurityToken();
             $decodedUser = $tk->Decode($header[0]);
-            echo '      decode     ';
-            $headers = $request->getHeaders();
-            var_dump($decodedUser);
-            $headers['category'] = $decodedUser->category;
+            $response = $next($request, $response);
 
-            $return = true;
         } catch (BeforeValidException $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $loginResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
         } catch (ExpiredException $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $loginResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
         } catch (SignatureInvalidException $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $loginResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
         } catch (Exception $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $loginResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
         }
 
-        return $return;
+        if (!$loginResponse->Succes()) {
+            return $response->getBody()->write($loginResponse->ToJsonResponse());
+        }
+
     }
 
     public function ValidarMozo($request, $response, $args)

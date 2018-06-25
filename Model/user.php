@@ -7,20 +7,24 @@ class User extends Entity
     private $name;
     private $user;
     private $pass;
-    private $category;
+    private $perfil;
 
-    public function __construct($name, $user, $pass, $category)
+    public function __construct($name, $user, $pass, $perfil)
     {
         $this->name = $name;
+        $this->perfil = $perfil;
         $this->user = $user;
         $this->pass = $pass;
-        $this->category = $category;
     }
 
     /// Getters
     public function GetName()
     {
         return $this->name;
+    }
+    public function GetPerfil()
+    {
+        return $this->perfil;
     }
 
     public function GetUser()
@@ -32,17 +36,6 @@ class User extends Entity
     {
         return $this->pass;
     }
-
-    public function GetCategory()
-    {
-        return $this->category;
-    }
-
-    public function GetCodigoMesa()
-    {
-        return $this->codigoMesa;
-    }
-
     // End Getters
 
     ///Setters
@@ -51,6 +44,24 @@ class User extends Entity
         $retorno = false;
         if (is_string($name) && $name != '') {
             $this->name = $name;
+            $retorno = true;
+        }
+
+        return $retorno;
+    }
+    public function NamePerfilFromDB($namePerfil)
+    {
+        $retorno = false;
+        $arrayString = explode("-", $namePerfil);
+        $this->name = $arrayString[0];
+        $this->perfil = $arrayString[1];
+        return $retorno;
+    }
+    public function SetPerfil($perfil)
+    {
+        $retorno = false;
+        if (is_string($perfil) && $perfil != '') {
+            $this->perfil = $perfil;
             $retorno = true;
         }
 
@@ -68,25 +79,15 @@ class User extends Entity
         return $retorno;
     }
 
-    public function SetTipo($category)
+    public function SetUser($user)
     {
         $retorno = false;
-        if (is_int($category) && ($category >= 0 || $category <= 5)) {
-            $this->category = $category;
+        if (is_string($user) && $user != '') {
+            $this->user = $user;
             $retorno = true;
         }
 
         return $retorno;
     }
 
-    public function SetCodigoMesa($codigoMesa)
-    {
-        $retorno = false;
-        if (is_string($codigoMesa) && count_chars($codigoMesa) == 5) {
-            $this->codigoMesa = $codigoMesa;
-            $retorno = true;
-        }
-
-        return $retorno;
-    }
 }

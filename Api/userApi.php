@@ -13,6 +13,22 @@ class UserApi extends UserRepository implements IApiUsable
 
     public function TraerTodos($request, $response, $args)
     {
+
+        try {
+
+            if (UserRepository::TraerUsuarios($arrayUsers)) {
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $arrayUsers);
+            } else {
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NODATA, "Sin elementos");
+            }
+        } catch (PDOException $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+        echo "we";
+
+        $response->getBody()->write($result->ToJsonResponse());
     }
 
     public function CargarUno($request, $response, $args)
@@ -23,7 +39,7 @@ class UserApi extends UserRepository implements IApiUsable
                 $parsedBody['name'],
                 $parsedBody['user'],
                 $parsedBody['password'],
-                $parsedBody['category']
+                $parsedBody['perfil']
             );
 
             $requestResponse = $this->InsertUser($user);
