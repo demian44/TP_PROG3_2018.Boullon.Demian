@@ -1,18 +1,10 @@
 <?php
 
-class TokenApi extends TokenRepository implements IApiUsable
+class TokenApi
 {
-    public function TraerUno($request, $response, $args)
-    {
-    }
-
     public function Ver($request, $response, $args)
     {
         $response->getBody()->write('Hola');
-    }
-
-    public function TraerTodos($request, $response, $args)
-    {
     }
 
     public function Login($request, $response, $args)
@@ -27,7 +19,7 @@ class TokenApi extends TokenRepository implements IApiUsable
             ""
         );
 
-        $loginResponse = $this->CheckUser($user); // Obtengo un ApiResponse
+        $loginResponse = TokenRepository::CheckUser($user); // Obtengo un ApiResponse
 
         if ($loginResponse->Succes()) { // Metodo devuelve true si no hay error
             $token = array(
@@ -47,23 +39,9 @@ class TokenApi extends TokenRepository implements IApiUsable
             } catch (Exception $excption) {
                 $loginResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "Error al generar token");
             }
-        } else {
-            $result = json_encode([REQUEST_ERROR_TYPE::TOKEN, $loginResponse->GetMessege()]);
         }
 
         $response->getBody()->write($loginResponse->ToJsonResponse());
-    }
-
-    public function CargarUno($request, $response, $args)
-    {
-    }
-
-    public function BorrarUno($request, $response, $args)
-    {
-    }
-
-    public function ModificarUno($request, $response, $args)
-    {
     }
 
     public function ValidarToken($request, $response, $next)
@@ -91,25 +69,4 @@ class TokenApi extends TokenRepository implements IApiUsable
 
     }
 
-    public function ValidarMozo($request, $response, $args)
-    {
-        $return = false;
-
-        if ($headers['category'] == Category::MOZO) {
-            $return = true;
-        }
-
-        return $return;
-    }
-
-    public function ValidarSocio($request, $response, $args)
-    {
-        $return = false;
-
-        if ($headers['category'] == Category::SOCIO) {
-            $return = true;
-        }
-
-        return $return;
-    }
 }

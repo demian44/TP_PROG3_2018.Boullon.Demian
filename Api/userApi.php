@@ -1,11 +1,7 @@
 <?php
 
-class UserApi extends UserRepository implements IApiUsable
+class UserApi
 {
-    public function TraerUno($request, $response, $args)
-    {
-    }
-
     public function Ver($request, $response, $args)
     {
         $response->getBody()->write('Hola');
@@ -26,8 +22,6 @@ class UserApi extends UserRepository implements IApiUsable
         } catch (Exception $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
         }
-        echo "we";
-
         $response->getBody()->write($result->ToJsonResponse());
     }
 
@@ -42,7 +36,18 @@ class UserApi extends UserRepository implements IApiUsable
                 $parsedBody['perfil']
             );
 
-            $requestResponse = $this->InsertUser($user);
+            $foto = User::SaveFoto($request->getUploadedFiles(),
+                $parsedBody['user']
+                , './UserImg/'
+            );
+
+            $user->SetFoto($request->getUri()->getHost() .
+                ':' .
+                $request->getUri()->getPort() .
+                PROYECT_NAME .
+                $foto);
+
+            $requestResponse = UserRepository::Insert($user);
         } catch (PDOException $exception) {
             $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {
@@ -52,11 +57,41 @@ class UserApi extends UserRepository implements IApiUsable
         $response->getBody()->write($requestResponse->ToJsonResponse());
     }
 
-    public function BorrarUno($request, $response, $args)
+    public function Editar($request, $response, $args)
     {
+        try {
+            $parsedBody = $request->getParsedBody();
+            $user = new User(
+                "",
+                $parsedBody['user'],
+                $parsedBody['password'],
+                ""
+            );
+
+            $requestResponse = UserRepository::EditUsuarios($user);
+        } catch (PDOException $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($requestResponse->ToJsonResponse());
     }
 
-    public function ModificarUno($request, $response, $args)
+    public function Borrar($request, $response, $args)
     {
+        try {
+            $parsedBody = $request->getParsedBody();
+            $id = $request->getParsedBody()['id'];
+            $foto = $response->getHeader("foto");
+            Venta::BackupFoto($foto[0], './UserImg/');
+            $requestResponse = UserRepository::EliminarUsuario($id);
+        } catch (PDOException $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($requestResponse->ToJsonResponse());
     }
 }

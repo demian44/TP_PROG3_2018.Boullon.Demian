@@ -1,59 +1,42 @@
 <?php
 
-class VentaApi extends VentaRepository implements IApiUsable
+class VentaApi
 {
-    public function TraerUno($request, $response, $args)
-    {
-    }
-
-    public function Ver($request, $response, $args)
-    {
-    }
-
-    public function TraerTodos($request, $response, $args)
-    {
-        try {
-
-            if (VentaRepository::TraerVentas($arrayVentas)) {
-                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $arrayVentas);
-            } else {
-                $result = new ApiResponse(REQUEST_ERROR_TYPE::NODATA, "Sin elementos");
-            }
-        } catch (PDOException $exception) {
-            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
-        } catch (Exception $exception) {
-            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
-        }
-        $response->getBody()->write($result->ToJsonResponse());
-
-    }
 
     public function CargarUno($request, $response, $args)
     {
         $count = 0;
         $parsedBody = $request->getParsedBody();
+
         $existCode = false;
 
         try {
-            $venta = new Venta($parsedBody['color'],
-                $parsedBody['marca'],
-                $parsedBody['talle'],
-                $parsedBody['precio']);
+            $venta = new Venta(
+                $parsedBody['idMedia'],
+                $parsedBody['nombreCliente'],
+                $parsedBody['fecha'],
+                $parsedBody['importe']
+            );
 
-            $foto = $this->SaveFoto($request->getUploadedFiles(),
-                $parsedBody['talle'] .
-                $parsedBody['marca'] .
-                $parsedBody['color']);
+            $date = explode("/", $parsedBody['fecha']);
 
-            //Concateno el nombre de la foto con host,puerto y api.
+            $file = $request->getUploadedFiles(); // Agarramos la foto.
+
+            $foto = Venta::SaveFoto($request->getUploadedFiles(),
+                $parsedBody['idMedia'] .
+                $parsedBody['nombreCliente'] .
+                $date[0] . $date[1] . $date[2], './FotosVentas/'
+            );
+
             $venta->SetFoto($request->getUri()->getHost() .
                 ':' .
                 $request->getUri()->getPort() .
                 PROYECT_NAME .
-                "$foto");
+                $foto);
 
-            $ventaRepository = new VentaRepository();
-            $internalResponse = $ventaRepository->InsertVenta($venta);
+            //Concateno el nombre de la foto con host,puerto y api.
+
+            $internalResponse = VentaRepository::InsertVenta($venta);
 
             $result = $internalResponse;
         } catch (PDOException $exception) {
@@ -64,39 +47,50 @@ class VentaApi extends VentaRepository implements IApiUsable
         $response->getBody()->write($result->ToJsonResponse());
     }
 
-    public function SaveFoto($file, $name)
+    public function ModificarUno($request, $response, $args)
     {
-        $destino = './imgs/';
-        ////GUARDAR ARCHIVO
-        $nombreAnterior = $file['foto']->getClientFilename();
-        $extension = explode('.', $nombreAnterior);
-        $file['foto']->moveTo($destino . "$name." . $extension[1]);
+        $count = 0;
+        $parsedBody = $request->getParsedBody();
 
-        return substr($destino, 2, 5) . "$name." . $extension[1];
-    }
+        $ventaVieja = $response->getHeader("venta");
 
-    private function SaveVenta($venta)
-    {
-    }
+        $existCode = false;
 
-    public function BorrarUno($request, $response, $args)
-    {
         try {
+            $venta = new Venta(
+                $parsedBody['idMedia'],
+                $parsedBody['nombreCliente'],
+                $parsedBody['fecha'],
+                $parsedBody['importe']
+            );
 
-            $id = $request->getParsedBody()['id'];
+            $date = explode("/", $parsedBody['fecha']);
 
-            $ventaRepository = new VentaRepository();
-            $coso = VentaRepository::TraerVentaPorId($id);
-            if (count($coso)) {
-                Venta::BackupFoto($coso[0]["foto"]);
+            $file = $request->getUploadedFiles(); // Agarramos la foto.
+            if (isset($file['foto'])) {
+                Venta::BackupFoto($ventaVieja[0], './FotosVentas/');
 
-                $internalResponse = $ventaRepository->DeletetVenta($id);
+                $foto = Venta::SaveFoto($request->getUploadedFiles(),
+                    $parsedBody['idMedia'] .
+                    $parsedBody['nombreCliente'] .
+                    $date[0] . $date[1] . $date[2], './FotosVentas/'
+                );
 
-                $result = $internalResponse;
+                $venta->SetFoto($request->getUri()->getHost() .
+                    ':' .
+                    $request->getUri()->getPort() .
+                    PROYECT_NAME .
+                    $foto);
             } else {
-                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, "No existe el id");
+                $venta->SetFoto($ventaVieja[0]);
             }
+            $venta->SetId($ventaVieja[1]);
 
+            //Concateno el nombre de la foto con host,puerto y api.
+
+            $internalResponse = VentaRepository::EditarVenta($venta);
+
+            $result = $internalResponse;
         } catch (PDOException $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {
@@ -105,7 +99,4 @@ class VentaApi extends VentaRepository implements IApiUsable
         $response->getBody()->write($result->ToJsonResponse());
     }
 
-    public function ModificarUno($request, $response, $args)
-    {
-    }
 }

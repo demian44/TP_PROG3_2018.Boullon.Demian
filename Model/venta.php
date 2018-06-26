@@ -71,17 +71,6 @@ class Venta extends Foto
         return $retorno;
     }
 
-    public function SetFoto($foto)
-    {
-        $retorno = false;
-        //if (is_int($foto)) {
-        $this->foto = $foto;
-        $retorno = true;
-        //}
-
-        return $retorno;
-    }
-
     public function SetImporte($importe)
     {
         $return = false;

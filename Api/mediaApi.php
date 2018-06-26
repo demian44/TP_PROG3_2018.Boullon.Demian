@@ -1,17 +1,11 @@
 <?php
 
-class MediaApi extends MediaRepository implements IApiUsable
+class MediaApi
 {
-    public function TraerUno($request, $response, $args)
-    {
-    }
-
-    public function Ver($request, $response, $args)
-    {
-    }
 
     public function TraerTodos($request, $response, $args)
     {
+
         try {
 
             if (MediaRepository::TraerMedias($arrayMedias)) {
@@ -40,10 +34,10 @@ class MediaApi extends MediaRepository implements IApiUsable
                 $parsedBody['talle'],
                 $parsedBody['precio']);
 
-            $foto = $this->SaveFoto($request->getUploadedFiles(),
+            $foto = Media::SaveFoto($request->getUploadedFiles(),
                 $parsedBody['talle'] .
                 $parsedBody['marca'] .
-                $parsedBody['color']);
+                $parsedBody['color'], './imgs/');
 
             //Concateno el nombre de la foto con host,puerto y api.
             $media->SetFoto($request->getUri()->getHost() .
@@ -52,8 +46,7 @@ class MediaApi extends MediaRepository implements IApiUsable
                 PROYECT_NAME .
                 "$foto");
 
-            $mediaRepository = new MediaRepository();
-            $internalResponse = $mediaRepository->InsertMedia($media);
+            $internalResponse = MediaRepository::Insert($media);
 
             $result = $internalResponse;
         } catch (PDOException $exception) {
@@ -64,33 +57,17 @@ class MediaApi extends MediaRepository implements IApiUsable
         $response->getBody()->write($result->ToJsonResponse());
     }
 
-    public function SaveFoto($file, $name)
-    {
-        $destino = './imgs/';
-        ////GUARDAR ARCHIVO
-        $nombreAnterior = $file['foto']->getClientFilename();
-        $extension = explode('.', $nombreAnterior);
-        $file['foto']->moveTo($destino . "$name." . $extension[1]);
-
-        return substr($destino, 2, 5) . "$name." . $extension[1];
-    }
-
-    private function SaveMedia($media)
-    {
-    }
-
     public function BorrarUno($request, $response, $args)
     {
         try {
 
             $id = $request->getParsedBody()['id'];
 
-            $mediaRepository = new MediaRepository();
-            $coso = MediaRepository::TraerMediaPorId($id);
-            if (count($coso)) {
-                Media::BackupFoto($coso[0]["foto"]);
+            $media = MediaRepository::TraerMediaPorId($id);
+            if ($media) {
+                Media::BackupFoto($media["foto"], './imgs/');
 
-                $internalResponse = $mediaRepository->DeletetMedia($id);
+                $internalResponse = MediaRepository::Delete($id);
 
                 $result = $internalResponse;
             } else {
@@ -105,7 +82,4 @@ class MediaApi extends MediaRepository implements IApiUsable
         $response->getBody()->write($result->ToJsonResponse());
     }
 
-    public function ModificarUno($request, $response, $args)
-    {
-    }
 }

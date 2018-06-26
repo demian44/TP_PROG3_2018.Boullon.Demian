@@ -61,7 +61,7 @@ class LoginMiddleware
 
         return $response;
     }
-    public function ValidarDueño($request, $response, $next)
+    public function ValidarDuenio($request, $response, $next)
     {
         $header = $response->getHeader("perfil");
         if ($header[0] == "dueño") {
@@ -69,10 +69,38 @@ class LoginMiddleware
         } else {
 
             $response->getBody()->write(
-                (new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "empleado"))->toJsonResponse());
+                (new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "no es duenio"))->toJsonResponse());
 
         }
 
         return $response;
     }
+    public function ValidarEncargadoEncargado($request, $response, $next)
+    {
+        $header = $response->getHeader("perfil");
+        if ($header[0] == "empleado" || $header[0] == "encargado") {
+            $response = $next($request, $response);
+        } else {
+            $response->getBody()->write((new ApiResponse(REQUEST_ERROR_TYPE::TOKEN,
+                "no es encargado ni empleado"))->toJsonResponse());
+
+        }
+
+        return $response;
+    }
+    public function ValidarEncargado($request, $response, $next)
+    {
+        $header = $response->getHeader("perfil");
+        if ($header[0] == "encargado") {
+            $response = $next($request, $response);
+        } else {
+
+            $response->getBody()->write(
+                (new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "no es encargado"))->toJsonResponse());
+
+        }
+
+        return $response;
+    }
+
 }

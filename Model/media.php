@@ -97,14 +97,4 @@ class Media extends Foto
         return $return;
     }
 
-    public static function BackupFoto($file)
-    {
-        $fileName = explode("/", $file);
-        $file = trim($file);
-        $nameFile = trim($fileName[count($fileName) - 1]);
-        $pathFile = "./imgs/" . $nameFile;
-        $arrayFileName = explode(".", $nameFile);
-        copy($pathFile, "backUp/" . $nameFile);
-        unlink($pathFile);
-    }
 }

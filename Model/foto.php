@@ -27,14 +27,27 @@ class Foto extends Entity
         return $retorno;
     }
 
-    public static function BackupFoto($file)
+    public static function SaveFoto($file, $name, $destino)
     {
+        ////GUARDAR ARCHIVO
+        $nombreAnterior = $file['foto']->getClientFilename();
+        $extension = explode('.', $nombreAnterior);
+
+        $file['foto']->moveTo($destino . "$name." . $extension[1]);
+        return substr($destino, 2) . "$name." . $extension[1];
+    }
+
+    public static function BackupFoto($file, $path)
+    {
+        $return = false;
         $fileName = explode("/", $file);
         $file = trim($file);
         $nameFile = trim($fileName[count($fileName) - 1]);
-        $pathFile = "./imgs/" . $nameFile;
+        $pathFile = $path . $nameFile;
         $arrayFileName = explode(".", $nameFile);
-        copy($pathFile, "backUp/" . $nameFile);
+        $return = true;
+        copy($pathFile, "./backUp/" . $nameFile);
         unlink($pathFile);
+        return $return;
     }
 }

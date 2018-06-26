@@ -1,29 +1,31 @@
 <?php
 class TokenRepository
 {
-
-    /**
-     * Agregar Throw
-     */
-    public function CheckUser($user)
+    public static function CheckUser($user)
     {
-        $response = null;
+        $response = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "User incorrecto");
 
         try {
 
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-            $consulta = $objetoAccesoDato->RetornarConsulta("SELECT password,name FROM users WHERE user = :user");
+            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT password,name FROM users WHERE ' .
+                ' user = :user AND active=1');
             $consulta->execute(array(":user" => $user->GetUser()));
-            $row = $consulta->fetch();
 
-            if (isset($row["password"]) && $row["password"] == $user->GetPass()) {
-                $perfil = explode("-", $row["name"]);
-                $perfil = $perfil[1];
-                $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $perfil);
-            } else {
-                $response = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "User o pass incorrecto");
+            $array = $consulta->fetchall();
+            if (count($array) > 0) {
+                $row = $array[0];
+
+                if (isset($row["password"]) && $row["password"] == $user->GetPass()) {
+                    $perfil = explode("-", $row["name"]);
+                    $perfil = $perfil[1];
+
+                    $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $perfil);
+                } else {
+                    $response = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "Pass incorrecto");
+                }
+
             }
-
         } catch (PDOException $exception) {
             throw $exception;
         } catch (Exception $exception) {
@@ -31,35 +33,6 @@ class TokenRepository
         }
 
         return $response;
-
-    }
-    public static function ModificarPedido($id, $cliente, $sexo, $cantante)
-    {
-
-        // $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-
-        // $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE cds SET titel = :nombre, interpret = :cantante,
-        //                                                 jahr = :sexo WHERE id = :id");
-
-        // $consulta->bindValue(':id', $id, PDO::PARAM_INT);
-        // $consulta->bindValue(':nombre', $nombre, PDO::PARAM_INT);
-        // $consulta->bindValue(':sexo', $sexo, PDO::PARAM_INT);
-        // $consulta->bindValue(':cantante', $cantante, PDO::PARAM_STR);
-
-        // return $consulta->execute();
-
-    }
-
-    public static function EliminarPedido($id)
-    {
-
-        // $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-
-        // $consulta = $objetoAccesoDato->RetornarConsulta("DELETE FROM cds WHERE id = :id");
-
-        // $consulta->bindValue(':id', $id, PDO::PARAM_INT);
-
-        // return $consulta->execute();
 
     }
 

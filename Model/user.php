@@ -2,7 +2,7 @@
 /*
  * Los usuarios pueden ser socios o empleados
  */
-class User extends Entity
+class User extends Foto
 {
     private $name;
     private $user;
