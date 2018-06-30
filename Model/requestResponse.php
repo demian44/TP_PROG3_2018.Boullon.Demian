@@ -16,21 +16,12 @@ class ApiResponse
 
     public function ToJsonResponse()
     {
-        return json_encode(['code' => $this->errorCode, 'response' => $this->response]);
+        return json_encode(['code' => $this->errorCode, 'messege' => $this->response]);
     }
 
     public function GetErrorCode()
     {
         return $this->errorCode;
-    }
-    public function Succes()
-    {
-        if ($this->errorCode == REQUEST_ERROR_TYPE::NOERROR) {
-            return true;
-        } else {
-            return false;
-        }
-
     }
 
     public function GetResponse()

@@ -1,20 +1,23 @@
 <?php
 
+
 class UserRepository
 {
-    public static function Insert($user)
+    /**
+     * Agregar Throw.
+     */
+    public function InsertUser($user)
     {
         $result;
         try {
-
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-            $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO users (name,user,password,foto)'
-                . 'VALUES(:name,:user,:password,:foto)');
+            $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO users (name,category,user,password)'
+            .'VALUES(:name,:category,:user,:password)');
 
-            $consulta->bindValue(':name', $user->GetName() . "-" . $user->GetPerfil(), PDO::PARAM_STR);
+            $consulta->bindValue(':name', $user->GetName(), PDO::PARAM_STR);
+            $consulta->bindValue(':category', $user->GetCategory(), PDO::PARAM_INT);
             $consulta->bindValue(':user', $user->GetUser(), PDO::PARAM_STR);
             $consulta->bindValue(':password', $user->GetPass(), PDO::PARAM_STR);
-            $consulta->bindValue(':foto', $user->GetFoto(), PDO::PARAM_STR);
 
             if (!$consulta->execute()) { //Si no retorna 1 no guardó el elemento
                 $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, 'Error al guardar al usuario en la base de datos.');
@@ -31,132 +34,29 @@ class UserRepository
         return $result;
     }
 
-    public static function TraerUsuarios(&$arrayUsuarios)
+    public static function ModificarPedido($id, $cliente, $sexo, $cantante)
     {
-        $return = false;
-        $arrayUsuarios = [];
-        try {
-            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+        // $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
 
-            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT name,user FROM users ' .
-                ' WHERE active=1');
-            $row = $consulta->execute();
+        // $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE cds SET titel = :nombre, interpret = :cantante,
+        //                                                 jahr = :sexo WHERE id = :id");
 
-            foreach ($consulta->fetchAll() as $row) {
-                $array = explode("-", $row["name"]);
-                $user["name"] = $array[0];
-                $user["perfil"] = $array[1];
-                $user["user"] = $row["user"];
-                $user["foto"] = $row["foto"];
-                array_push($arrayUsuarios, $user);
-                $return = true;
-            }
+        // $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+        // $consulta->bindValue(':nombre', $nombre, PDO::PARAM_INT);
+        // $consulta->bindValue(':sexo', $sexo, PDO::PARAM_INT);
+        // $consulta->bindValue(':cantante', $cantante, PDO::PARAM_STR);
 
-        } catch (PDOException $exception) {
-            throw $exception;
-        } catch (Exception $exception) {
-            throw $exception;
-        }
-
-        return $return;
+        // return $consulta->execute();
     }
 
-    public static function TraerUsuarioPorId($id)
+    public static function EliminarPedido($id)
     {
-        try {
-            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+        // $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
 
-            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT * FROM users where id = :id ' .
-                ' AND active = 1');
+        // $consulta = $objetoAccesoDato->RetornarConsulta("DELETE FROM cds WHERE id = :id");
 
-            $consulta->execute(array(':id' => $id));
-            $row = $consulta->fetch();
-            if ($row) {
-                $user["id"] = $row["id"];
-                $user["name"] = $row["name"];
-                $user["user"] = $row["user"];
-                $user["password"] = $row["password"];
-                $user["foto"] = $row["foto"];
-            } else {
-                $user = false;
-            }
+        // $consulta->bindValue(':id', $id, PDO::PARAM_INT);
 
-        } catch (PDOException $exception) {
-            throw $exception;
-        } catch (Exception $exception) {
-            throw $exception;
-        }
-
-        return $user;
+        // return $consulta->execute();
     }
-    public static function ExisteUser($user)
-    {
-        try {
-            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-
-            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT * FROM users where user = :user ' .
-                ' AND active = 1');
-
-            $consulta->execute(array(':user' => $user));
-            $row = $consulta->fetch();
-            if ($row) {
-                $user = true;
-            } else {
-                $user = false;
-            }
-
-        } catch (PDOException $exception) {
-            throw $exception;
-        } catch (Exception $exception) {
-            throw $exception;
-        }
-
-        return $user;
-    }
-    public static function EditUsuarios($user)
-    {
-        try {
-            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-            $consulta = $objetoAccesoDato->RetornarConsulta(
-                ' UPDATE users SET password = :password  WHERE user = :user');
-
-            $consulta->bindValue(':user', $user->GetUser(), PDO::PARAM_STR);
-            $consulta->bindValue(':password', $user->GetPass(), PDO::PARAM_STR);
-
-            if (!$consulta->execute()) { //Si no retorna 1 no guardó el elemento
-                $response = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, 'Error al editar la orden en la base de datos.');
-            } else {
-                $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, 'EXITO');
-            }
-        } catch (PDOException $exception) {
-            throw $exception;
-        } catch (Exception $exception) {
-            throw $exception;
-        }
-
-        return $response;
-    }
-    public static function EliminarUsuario($id)
-    {
-        try {
-            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-            $consulta = $objetoAccesoDato->RetornarConsulta(
-                ' UPDATE users SET active = 0  WHERE id = :id');
-
-            $consulta->bindValue(':id', $id, PDO::PARAM_STR);
-
-            if (!$consulta->execute()) { //Si no retorna 1 no guardó el elemento
-                $response = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, 'Error al editar la orden en la base de datos.');
-            } else {
-                $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, 'EXITO');
-            }
-        } catch (PDOException $exception) {
-            throw $exception;
-        } catch (Exception $exception) {
-            throw $exception;
-        }
-
-        return $response;
-    }
-
 }

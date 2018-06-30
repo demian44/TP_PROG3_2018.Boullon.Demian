@@ -1,35 +1,46 @@
 <?php
-class TokenRepository
+class PedidoRepository
 {
+
+    public static function TraerPedido()
+    {
+        /*$objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+        $consulta = $objetoAccesoDato->RetornarConsulta("SELECT nombre, nacionalidad, "
+            . "sexo FROM pedidos WHERE nacionalidad = :nacionalidad "
+            . "AND sexo= :sexo");
+
+        $consulta->execute(array(":nacionalidad" => $nacionalidad, ":sexo" => $sexo));
+        $array = [];
+        foreach ($consulta->fetchAll() as $row) {
+            array_push($array, $row);
+        }
+
+        return $array;/*/
+    }
 
     /**
      * Agregar Throw
      */
-    public function CheckUser($user)
+    public function InsertarPedido($pedido)
     {
         $response = new InternalResponse();
-        $response->SetMessege("Token exitoso");
+        $response->SetMessege("Carga exitosa");
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-             
-            $consulta = $objetoAccesoDato->RetornarConsulta("SELECT password,category FROM users WHERE user = :user");
-            $consulta->execute(array(":user" => $user->GetUser()));
-            $row = $consulta->fetch();
-            
-            if (isset($row["password"]) && $row["password"] == $user->GetPass()) {
-                $response->SetElement(array("succesToken" => true,"category"=>$row["category"]));
-            }
-            else{
-                $response->SetMessege("User o pass incorrecto");
-                $response->SetElement(array("succesToken" => false));
-            }
+
+             $consulta = $objetoAccesoDato->RetornarConsulta("INSERT INTO pedidos (cliente)"
+                 . "VALUES(:cliente)");
+             $consulta->bindValue(':cliente', $pedido->GetCliente(), PDO::PARAM_STR);
+             echo "\n";
+             if (!$consulta->execute()) //Si no retorna 1 no guardó el elemento
+             $response->SetMessege("Error al guardar al pedido en la base de datos.");
 
         } catch (PDOException $exception) {
-            throw $exception;
+            $response->SetMessege("Error: " . $exception->getMessage());
         } catch (Exception $exception) {
-            throw $exception;
+            $response->SetMessege("Error: " . $exception->getMessage());
         }
-
         return $response;
 
     }
@@ -64,5 +75,3 @@ class TokenRepository
     }
 
 }
-
-?>
