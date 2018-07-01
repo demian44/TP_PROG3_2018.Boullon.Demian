@@ -12,6 +12,7 @@ include_once './Model/Enums/errorType.php';
 //Entidades
 include_once './Model/ICodeGenerator.php';
 include_once './Model/entity.php';
+include_once './Model/orderItem.php';
 include_once './Model/requestResponse.php';
 include_once './Model/order.php';
 include_once './Model/user.php';
@@ -30,6 +31,8 @@ include_once './Api/orderApi.php';
 include_once './Api/Token/token.php';
 include_once './Api/Token/token.php';
 
+include_once './Middleware/orderMiddleware.php';
+include_once './Middleware/userMiddleware.php';
 include_once './Middleware/loginMiddleware.php';
 
 require './vendor/autoload.php';

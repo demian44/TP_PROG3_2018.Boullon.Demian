@@ -4,6 +4,7 @@ class TokenApi extends TokenRepository implements IApiUsable
 {
     public function TraerUno($request, $response, $args)
     {
+        echo "Llego";
     }
 
     public function Ver($request, $response, $args)
@@ -35,7 +36,7 @@ class TokenApi extends TokenRepository implements IApiUsable
         if ($loginResponse->GetElement()['succesToken']) {
             $token = array(
                 'category' => $loginResponse->GetElement()['category'], //Tipo de usuario
-                'exp' => time() + 6000, // La sesión dura 10 minutos.
+                'exp' => time() + 60000, // La sesión dura 10 minutos.
                 'nbf' => time(),
             );
 
@@ -44,7 +45,7 @@ class TokenApi extends TokenRepository implements IApiUsable
                 $headers['HTTP_TOKEN'] = $securityToken->Encode($token);
                 $responseToken = $headers['HTTP_TOKEN']; // Guardo el token en el header
                 $headers['category'] = $loginResponse->GetElement()['category'];
-                $request->withAddedHeader('Category', $responseToken);  // Setteo en el header el tipo
+                $request->withAddedHeader('Category', $responseToken); // Setteo en el header el tipo
                 $newResponse = $responseToken;
                 $result = json_encode([REQUEST_ERROR_TYPE::NOERROR, $responseToken]);
             } catch (Exception $excption) {
@@ -69,27 +70,34 @@ class TokenApi extends TokenRepository implements IApiUsable
     {
     }
 
-    public function ValidarToken($request, $response, $args)
+    public function ValidarToken($request, $response, $next)
     {
         $return = false;
         try {
             $header = $request->getHeader('token');
             $tk = new SecurityToken();
-            $decodedUser = $tk->Decode($header[0]);
-            echo '      decode     ';
-            $headers = $request->getHeaders();
-            var_dump($decodedUser);
-            $headers['category'] = $decodedUser->category;
 
-            $return = true;
+            if (count($header) > 0) {
+                $decodedUser = $tk->Decode($header[0]);
+                $newResponse = $response->withAddedHeader("category", $decodedUser->category);
+                
+                $return = true;
+            } else {
+                $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "Falta token");
+                $response->getBody()->write($apiResponse->ToJsonResponse());
+            }
         } catch (BeforeValidException $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
+            $response->getBody()->write($apiResponse->ToJsonResponse());
         } catch (ExpiredException $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
+            $response->getBody()->write($apiResponse->ToJsonResponse());
         } catch (SignatureInvalidException $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
+            $response->getBody()->write($apiResponse->ToJsonResponse());
         } catch (Exception $exception) {
-            $response->getBody()->write(json_encode(['code' => REQUEST_ERROR_TYPE::TOKEN, 'messege' => 'Error de token: '.$exception->getMessage()]));
+            $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
+            $response->getBody()->write($apiResponse->ToJsonResponse());
         }
 
         return $return;

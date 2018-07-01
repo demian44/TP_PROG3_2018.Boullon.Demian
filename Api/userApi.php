@@ -1,6 +1,6 @@
 <?php
 
-class UserApi extends UserRepository implements IApiUsable
+class UserApi implements IApiUsable
 {
     public function TraerUno($request, $response, $args)
     {
@@ -25,8 +25,8 @@ class UserApi extends UserRepository implements IApiUsable
                 $parsedBody['password'],
                 $parsedBody['category']
             );
-
-            $requestResponse = $this->InsertUser($user);
+            
+            $requestResponse = UserRepository::Insert($user);
         } catch (PDOException $exception) {
             $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {

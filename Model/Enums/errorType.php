@@ -9,4 +9,6 @@ class REQUEST_ERROR_TYPE
     const DATATIPE = 2;
     const GENERAL = 3;
     const TOKEN = 4;
+    const NODATA = 5;
+    const NOEXIST = 6;
 }

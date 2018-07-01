@@ -1,6 +1,6 @@
 <?php
 
-class OrderApi extends OrderRepository implements IApiUsable
+class OrderApi implements IApiUsable
 {
     public function TraerUno($request, $response, $args)
     {
@@ -23,17 +23,22 @@ class OrderApi extends OrderRepository implements IApiUsable
         try {
             do {
                 $code = Order::generateCode();
+                $orderItemsJson = json_decode($parsedBody['orderIdItems']);
+                $orderItems = [];
+                foreach ($orderItemsJson as $key => $orderItemJson) {
+                    $orderItem = new OrderItem( $orderItemJson->id,$orderItemJson->cant);
+                    array_push($orderItems,$orderItem);
+                }
 
                 if (!OrderRepository::CheckCodes($code)) {
                     $order = new Order($parsedBody['clientName'], $code, $parsedBody['mesaId'],
-                    json_decode($parsedBody['orderItems']));
+                    $orderItems);
 
                     date_default_timezone_set('America/Argentina/Buenos_Aires');
                     $date = date('Y/m/d H:i');
                     $order->SetOrderedTime($date); // Hora en que se hizo el pedido.
 
-                    $orderRepository = new OrderRepository();
-                    $internalResponse = $orderRepository->InsertOrder($order);
+                    $internalResponse = OrderRepository::InsertOrder($order);
 
                     $result = $internalResponse;
                 }
