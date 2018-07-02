@@ -3,7 +3,13 @@
 include_once './elements.php';
 
 $app = new \Slim\App();
-
+/**
+ * 
+ * IMPORTANTE AGREGUE TIEMPO ESTIMADO POR ITEM, EMPLEADO A CARGO Y ESTADO.
+ * 
+ * 
+ * 
+ */
 $app->group('/order', function () {
     $this->post('/new', \OrderApi::class . ':CargarUno')
         ->add(\OrderMiddleware::class . ':ExistAllItems')
