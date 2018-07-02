@@ -9,6 +9,9 @@ $app->group('/order', function () {
         ->add(\OrderMiddleware::class . ':ExistAllItems')
         ->add(\OrderMiddleware::class . ':CheckCarga')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
+
+    $this->get('', \OrderApi::class . ':TraerTodos');
+
 })->add(\LoginMiddleware::class . ':ValidarToken');
 
 $app->group('/users', function () {

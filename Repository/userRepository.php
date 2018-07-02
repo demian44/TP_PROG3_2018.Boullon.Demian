@@ -33,32 +33,31 @@ class UserRepository
 
     public static function TraerUsuarios(&$arrayUsuarios)
     {
-        $return = false;
-        $arrayUsuarios = [];
-        try {
-            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+        // $return = false;
+        // $arrayUsuarios = [];
+        // try {
+        //     $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
 
-            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT name,user FROM users ' .
-                ' WHERE active=1');
-            $row = $consulta->execute();
+        //     $consulta = $objetoAccesoDato->RetornarConsulta('SELECT name,user FROM users ' .
+        //         ' WHERE active=1');
+        //     $row = $consulta->execute();
 
-            foreach ($consulta->fetchAll() as $row) {
-                $array = explode("-", $row["name"]);
-                $user["name"] = $array[0];
-                $user["perfil"] = $array[1];
-                $user["user"] = $row["user"];
-                $user["category"] = $row["category"];
-                array_push($arrayUsuarios, $user);
-                $return = true;
-            }
+        //     foreach ($consulta->fetchAll() as $row) {
+        //         $user["name"] = $row["name"];
+        //         $user["perfil"] = ;
+        //         $user["user"] = $row["user"];
+        //         $user["category"] = $row["category"];
+        //         array_push($arrayUsuarios, $user);
+        //         $return = true;
+        //     }
 
-        } catch (PDOException $exception) {
-            throw $exception;
-        } catch (Exception $exception) {
-            throw $exception;
-        }
+        // } catch (PDOException $exception) {
+        //     throw $exception;
+        // } catch (Exception $exception) {
+        //     throw $exception;
+        // }
 
-        return $return;
+        // return $return;
     }
 
     public static function TraerUsuarioPorId($id)

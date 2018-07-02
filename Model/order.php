@@ -1,22 +1,23 @@
 <?php
-class Order extends Entity implements CodeGenerator
+class Order extends Foto implements CodeGenerator
 {
     private $cliente;
     private $code;
+    private $status;
     private $items;
     private $mesaId;
     private $mesaCode;
     private $orderedTime;
     private $estimateTime;
     private $deliveredTime;
-    private $photo;
 
-    public function __construct(string $cliente, string $code, int $mesaId, $items)
+    public function __construct(string $cliente, string $code, int $mesaId)
     {
         $this->cliente = $cliente;
         $this->code = $code;
         $this->mesaId = $mesaId;
-        $this->items = $items;
+        $this->items = [];
+        $this->SetFoto("imgs/SINFOTO.jpg");
     }
 
     /// Getters
@@ -29,10 +30,9 @@ class Order extends Entity implements CodeGenerator
     {
         return $this->items;
     }
-
-    public function GetPhoto()
+    public function GetStatus()
     {
-        return $this->photo;
+        return $this->status;
     }
 
     public function GetCode()
@@ -78,18 +78,10 @@ class Order extends Entity implements CodeGenerator
 
         return $retorno;
     }
-
-    public function SetPhoto($photo)
+    public function SetStatus($status)
     {
-        $retorno = false;
-        if (is_string($photo)) {
-            $this->photo = $photo;
-            $retorno = true;
-        }
-
-        return $retorno;
+        $this->status = $status;
     }
-
     public function SetCode($code)
     {
         $retorno = false;
@@ -185,10 +177,39 @@ class Order extends Entity implements CodeGenerator
         $count = strlen($caracters) - 1;
         //Genero un nuevo string con substrings aleatorios de 1 caracter de largo.
         return 'O' .
-        substr($caracters, rand(0, $count), 1) . //1
-        substr($caracters, rand(0, $count), 1) . //2
-        substr($caracters, rand(0, $count), 1) . //3
-        substr($caracters, rand(0, $count), 1) . //4
-        substr($caracters, rand(0, $count), 1); //5
+        substr($caracters, rand(0, $count), 1) . //1er caracter
+        substr($caracters, rand(0, $count), 1) . //2do caracter
+        substr($caracters, rand(0, $count), 1) . //3er caracter
+        substr($caracters, rand(0, $count), 1) . //4to caracter
+        substr($caracters, rand(0, $count), 1); //5to caracter
+    }
+
+    public static function ToJsonArray($arrayOrders)
+    {
+        
+        $jsonArrayReturn = [];
+        foreach ($arrayOrders as $key => $order) {
+
+            $orderJson["clientName"] = $order->GetCliente();
+            $orderJson["code"] = $order->GetCode();
+            $orderJson["mesaId"] = $order->GetMesaId();
+            $orderJson["status"] = $order->GetStatus();
+            $orderJson["estimateTime"] = $order->GetEstimateTime();
+            $orderJson["orderedTime"] = $order->GetOrderedTime();
+            $orderJson["foto"] = $order->GetFoto();
+            $orderJson["items"] = [];
+            foreach ($order->GetItems() as $key => $orderItem) {
+                $orderItemJson = [];
+                $orderItemJson["itemId"] = $orderItem->GetItemId();
+                $orderItemJson["cant"] = $orderItem->GetCant();
+                $orderItemJson["employeeType"] = $orderItem->GetEmployeeType();
+                $orderItemJson["name"] = $orderItem->GetName();
+                array_push($orderJson["items"], $orderItemJson);
+            }
+
+            array_push($jsonArrayReturn, $orderJson);
+        }
+        
+        return  $jsonArrayReturn;       
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-class OrderItem
+class OrderItem extends Item
 {
     private $orderId;
     private $itemId;

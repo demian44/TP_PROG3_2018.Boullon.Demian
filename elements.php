@@ -1,5 +1,7 @@
 <?php
 
+const PROYECT_NAME = "/TP_PROG3_2018.Boullon.Demian/";
+
 include_once './IApiUsable.php';
 include_once './InternalResponse.php';
 
@@ -9,9 +11,11 @@ include_once './Model/Enums/itemType.php';
 include_once './Model/Enums/orderStatus.php';
 include_once './Model/Enums/errorType.php';
 
-//Entidades
+//Models
 include_once './Model/ICodeGenerator.php';
 include_once './Model/entity.php';
+include_once './Model/foto.php';
+include_once './Model/item.php';
 include_once './Model/orderItem.php';
 include_once './Model/requestResponse.php';
 include_once './Model/order.php';
