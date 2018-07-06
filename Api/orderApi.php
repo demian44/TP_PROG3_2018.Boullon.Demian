@@ -2,7 +2,7 @@
 
 class OrderApi implements IApiUsable
 {
-    public function TraerUno($request, $response, $args)
+    public function GetOne($request, $response, $args)
     {
     }
 
@@ -10,7 +10,7 @@ class OrderApi implements IApiUsable
     {
     }
 
-    public function TraerTodos($request, $response, $args)
+    public function GetAll($request, $response, $args)
     {
         try {
             $header = $response->getHeader("category");

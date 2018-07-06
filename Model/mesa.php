@@ -3,14 +3,7 @@
 class Mesa extends Entity implements CodeGenerator
 {
     private $code;
-    private $available;
-
-    public function __construct($code)
-    {
-        $this->SetAvailable(true);
-
-        return $this->SetCode($code);
-    }
+    private $status;
 
     /// Getters
     public function GetCode()
@@ -18,9 +11,9 @@ class Mesa extends Entity implements CodeGenerator
         return $this->code;
     }
 
-    public function GetAvailable()
+    public function GetStatus()
     {
-        return $this->available;
+        return $this->status;
     }
 
     // End Getters
@@ -28,8 +21,9 @@ class Mesa extends Entity implements CodeGenerator
     ///Setters
     public function SetCode($code)
     {
+        $coso = count_chars($code);
         $retorno = false;
-        if (is_string($code) && count_chars($code) == 5) {
+        if (is_string($code) && strlen($code) == 5) {
             $this->code = $code;
             $retorno = true;
         }
@@ -37,15 +31,24 @@ class Mesa extends Entity implements CodeGenerator
         return $retorno;
     }
 
-    public function SetAvailable($available)
+    public function SetStatus($status)
     {
         $retorno = false;
-        if (!is_null($available)) {
-            $this->available = $available;
+        if (!is_null($status)) {
+            $this->status = $status;
             $retorno = true;
         }
 
         return $retorno;
+    }
+
+    public function ToJson()
+    {
+        $mesaJson["id"] = $this->GetId();
+        $mesaJson["code"] = $this->GetCode();
+        $mesaJson["status"] = $this->GetStatus();
+
+        return $mesaJson;
     }
 
     public static function generateCode()
@@ -53,11 +56,10 @@ class Mesa extends Entity implements CodeGenerator
         $caracters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $count = strlen($caracters) - 1;
         //Genero un nuevo string con substrings aleatorios de 1 caracter de largo.
-        return 'M'.
-                    substr($caracters, rand(0, $count), 1). //1
-                    substr($caracters, rand(0, $count), 1). //2
-                    substr($caracters, rand(0, $count), 1). //3
-                    substr($caracters, rand(0, $count), 1). //4
-                    substr($caracters, rand(0, $count), 1); //5
+        return 'M' .
+        substr($caracters, rand(0, $count), 1) . //2
+        substr($caracters, rand(0, $count), 1) . //3
+        substr($caracters, rand(0, $count), 1) . //4
+        substr($caracters, rand(0, $count), 1); //5
     }
 }

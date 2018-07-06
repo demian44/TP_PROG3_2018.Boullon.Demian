@@ -2,7 +2,7 @@
 
 class TokenApi extends TokenRepository implements IApiUsable
 {
-    public function TraerUno($request, $response, $args)
+    public function GetOne($request, $response, $args)
     {
         echo "Llego";
     }
@@ -12,7 +12,7 @@ class TokenApi extends TokenRepository implements IApiUsable
         $response->getBody()->write('Hola');
     }
 
-    public function TraerTodos($request, $response, $args)
+    public function GetAll($request, $response, $args)
     {
     }
 

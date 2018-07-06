@@ -7,16 +7,20 @@ $app = new \Slim\App();
  * 
  * IMPORTANTE AGREGUE TIEMPO ESTIMADO POR ITEM, EMPLEADO A CARGO Y ESTADO.
  * 
- * 
- * 
  */
 $app->group('/order', function () {
     $this->post('/new', \OrderApi::class . ':CargarUno')
         ->add(\OrderMiddleware::class . ':ExistAllItems')
+        ->add(\MesaMiddleware::class . ':ValidarMesa')
+        ->add(\OrderMiddleware::class . ':CheckCarga')
+        ->add(\LoginMiddleware::class . ':ValidarMozo');
+   
+        $this->post('/takeOrder', \OrderApi::class . ':TakeOrder')
+        ->add(\OrderMiddleware::class . ':ExistAllItems')
         ->add(\OrderMiddleware::class . ':CheckCarga')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
 
-    $this->get('', \OrderApi::class . ':TraerTodos');
+    $this->get('', \OrderApi::class . ':GetAll');
 
 })->add(\LoginMiddleware::class . ':ValidarToken');
 
@@ -25,7 +29,7 @@ $app->group('/users', function () {
     $this->post('/', \UserApi::class . ':CargarUno')
         ->add(\UserMiddleware::class . ':UserRepetido')
         ->add(\UserMiddleware::class . ':CheckUserData');
-    // $this->get('/', \UserApi::class . ':TraerTodos');
+    // $this->get('/', \UserApi::class . ':GetAll');
     // $this->put('/', \UserApi::class . ':Editar')
     //     ->add(\UserMiddleware::class . ':CheckUserEdit');
 
@@ -36,10 +40,17 @@ $app->group('/users', function () {
 
 })->add(\LoginMiddleware::class . ':ValidarToken');
 
+$app->group('/mesas', function () {
+    $this->post('', \MesaApi::class . ':CargarUno')
+        ->add(\LoginMiddleware::class . ':ValidarSocio');
+    $this->get('', \MesaApi::class . ':GetAll')
+        ->add(\LoginMiddleware::class . ':ValidarSocio');
+})->add(\LoginMiddleware::class . ':ValidarToken');
+
 $app->group('/login', function () {
     $this->post('/validateLogin', \TokenApi::class . ':Login');
 
-    $this->post('/chekking', \TokenApi::class . ':TraerUno')
+    $this->post('/chekking', \TokenApi::class . ':GetOne')
         ->add(\LoginMiddleware::class . ':ValidarSocio')
         ->add(\LoginMiddleware::class . ':ValidarToken');
 

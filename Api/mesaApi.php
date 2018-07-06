@@ -1,8 +1,8 @@
 <?php
 
-class MesaApi extends OrderRepository implements IApiUsable
+class MesaApi implements IApiUsable
 {
-    public function TraerUno($request, $response, $args)
+    public function GetOne($request, $response, $args)
     {
     }
 
@@ -10,41 +10,45 @@ class MesaApi extends OrderRepository implements IApiUsable
     {
     }
 
-    public function TraerTodos($request, $response, $args)
+    public function GetAll($request, $response, $args)
     {
+        try {
+            $result = MesaRepository::GetAll();
+        } catch (PDOException $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+        $response->getBody()->write($result->ToJsonResponse());
     }
 
     public function CargarUno($request, $response, $args)
     {
         $count = 0;
         $parsedBody = $request->getParsedBody();
-        $existCode = false;
+        $existCode = true;
+        $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL,
+            "Problema en la generacion de código.");
+        $mesa = new Mesa();
 
         try {
             do {
                 $code = Mesa::generateCode();
 
-                if (!OrderRepository::CheckCodes($code)) {
-                    $order = new Mesa($parsedBody['code']);
-
-                    date_default_timezone_set('America/Argentina/Buenos_Aires');
-                    $date = date('Y/m/d H:i');
-                    $order->SetOrderedTime($date); // Hora en que se hizo el pedido.
-
-                    $orderRepository = new OrderRepository();
-                    $internalResponse = new InternalResponse();
-                    $internalResponse = $orderRepository->InsertOrder($order);
-
-                    $result = [$internalResponse->GetError(), $internalResponse->GetMessege()];
+                if (!MesaRepository::CheckCodes($code)) {
+                    $mesa->SetCode($code);
+                    $result = MesaRepository::Insert($mesa);
+                    $existCode = false;
                 }
+
             } while ($existCode && $count < 50);
         } catch (PDOException $exception) {
-            $result = [REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage()];
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {
-            $result = [REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage()];
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
         }
 
-        $response->getBody()->write(json_encode($result));
+        $response->getBody()->write($result->ToJsonResponse());
     }
 
     private function SaveOrder($order)
