@@ -27,6 +27,7 @@ class Foto extends Entity
         return $retorno;
     }
 
+    
     public static function SaveFoto($file, $name, $destino)
     {
         ////GUARDAR ARCHIVO

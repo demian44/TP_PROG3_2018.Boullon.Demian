@@ -3,6 +3,7 @@ class LoginMiddleware
 {
     public function checkLoginData($request, $response, $next)
     {
+        
         $parsedBody = $request->getParsedBody();
         $flag = true;
         $errorMessege = '';
@@ -36,9 +37,9 @@ class LoginMiddleware
 
             if (count($header) > 0) {
                 $decodedUser = $tk->Decode($header[0]);
-
-                $newResponse = $response->withAddedHeader("category", $decodedUser->category);
-
+                $userInfo["category"] = $decodedUser->category;
+                $userInfo["user"] = $decodedUser->user;
+                $newResponse = $response->withAddedHeader("userInfo", $userInfo);
                 $response = $next($request, $newResponse);
 
             } else {
@@ -61,36 +62,38 @@ class LoginMiddleware
 
         return $response;
     }
-    
+
     public function ValidarSocio($request, $response, $next)
     {
-        $response = Self::ValidarUser($request, $response, $next, USER_TYPE::SOCIO, "socio");
+        $response = Self::ValidarUser($request, $response, $next, USER_CATEGORY::SOCIO, "socio");
         return $response;
     }
     public function ValidarMozo($request, $response, $next)
     {
-        $response = Self::ValidarUser($request, $response, $next, USER_TYPE::MOZO, "mozo");
+
+        $response = Self::ValidarUser($request, $response, $next, USER_CATEGORY::MOZO, "mozo");
         return $response;
     }
     public function ValidarBarTender($request, $response, $next)
     {
-        $response = Self::ValidarUser($request, $response, $next, USER_TYPE::BARTENDER, "bartender");
+        $response = Self::ValidarUser($request, $response, $next, USER_CATEGORY::BARTENDER, "bartender");
         return $response;
     }
     public function ValidarCerbecero($request, $response, $next)
     {
-        $response = Self::ValidarUser($request, $response, $next, USER_TYPE::CERBECERO, "cerbecero");
+        $response = Self::ValidarUser($request, $response, $next, USER_CATEGORY::CERBECERO, "cerbecero");
         return $response;
     }
     public function ValidarCocinero($request, $response, $next)
     {
-        $response = Self::ValidarUser($request, $response, $next, USER_TYPE::COCINERO, "cocinero");
+        $response = Self::ValidarUser($request, $response, $next, USER_CATEGORY::COCINERO, "cocinero");
         return $response;
     }
     private static function ValidarUser($request, $response, $next, $user, $userName)
     {
-        $header = $response->getHeader("category");
-        if ($header[0] == $user) {
+        $header = $response->getHeader("userInfo");
+        
+        if ($header[0] == $user || $header[0] == USER_CATEGORY::SOCIO) {
             $response = $next($request, $response);
         } else {
             $response->getBody()->write((new ApiResponse(REQUEST_ERROR_TYPE::TOKEN,
@@ -101,7 +104,7 @@ class LoginMiddleware
 
     public function ValidarEncargadoEncargado($request, $response, $next)
     {
-        $header = $response->getHeader("category");
+        $header = $response->getHeader("userInfo");
         if ($header[0] == "empleado" || $header[0] == "encargado") {
             $response = $next($request, $response);
         } else {
@@ -112,6 +115,8 @@ class LoginMiddleware
 
         return $response;
     }
+   
+    
     public function ValidarEncargado($request, $response, $next)
     {
         $header = $response->getHeader("perfil");

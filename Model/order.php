@@ -107,7 +107,7 @@ class Order extends Foto implements CodeGenerator
     public function SetMesaCode($mesaCode)
     {
         $retorno = false;
-        if (is_string($mesaCode) && count_chars($mesaCode) == 5) {
+        if (is_string($mesaCode) && strlen($mesaCode) == 5) {
             $this->mesaCode = $mesaCode;
             $retorno = true;
         }
@@ -177,7 +177,6 @@ class Order extends Foto implements CodeGenerator
         $count = strlen($caracters) - 1;
         //Genero un nuevo string con substrings aleatorios de 1 caracter de largo.
         return 'O' .
-        substr($caracters, rand(0, $count), 1) . //1er caracter
         substr($caracters, rand(0, $count), 1) . //2do caracter
         substr($caracters, rand(0, $count), 1) . //3er caracter
         substr($caracters, rand(0, $count), 1) . //4to caracter
@@ -186,7 +185,6 @@ class Order extends Foto implements CodeGenerator
 
     public static function ToJsonArray($arrayOrders)
     {
-        
         $jsonArrayReturn = [];
         foreach ($arrayOrders as $key => $order) {
 
@@ -202,7 +200,7 @@ class Order extends Foto implements CodeGenerator
                 $orderItemJson = [];
                 $orderItemJson["itemId"] = $orderItem->GetItemId();
                 $orderItemJson["cant"] = $orderItem->GetCant();
-                $orderItemJson["employeeType"] = $orderItem->GetEmployeeType();
+                $orderItemJson["employeeType"] = $orderItem->GetSector();
                 $orderItemJson["name"] = $orderItem->GetName();
                 array_push($orderJson["items"], $orderItemJson);
             }

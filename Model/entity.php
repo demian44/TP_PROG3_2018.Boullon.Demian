@@ -5,6 +5,7 @@
 class Entity
 {
     private $id;
+    private $active;
 
     public function GetId()
     {
@@ -20,5 +21,15 @@ class Entity
         }
 
         return $retorno;
+    }
+
+    public function GetActive()
+    {
+        return $this->active;
+    }
+
+    public function SetActive($active)
+    {
+        $this->active = $active;
     }
 }

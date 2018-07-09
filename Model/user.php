@@ -57,6 +57,17 @@ class User extends Entity
         return $retorno;
     }
 
+    public function SetUser($user)
+    {
+        $retorno = false;
+        if (is_string($user) && $user != '') {
+            $this->user = $user;
+            $retorno = true;
+        }
+
+        return $retorno;
+    }
+
     public function SetPass($pass)
     {
         $retorno = false;
@@ -77,6 +88,31 @@ class User extends Entity
         }
 
         return $retorno;
+    }
+    public function SetCategory($category)
+    {
+        $retorno = false;
+        if (is_int($category) || is_string($category)) {
+            $this->category = $category;
+            $retorno = true;
+        }
+
+        return $retorno;
+    }
+
+    public static function ActiveToString(int $active): string
+    {
+        $return = "activo";
+        switch ($active) {
+            case 0:
+                $return = "borrado";
+                break;
+
+            case -1:
+                $return = "suspendido";
+                break;
+        }
+        return $return;
     }
 
     public function SetCodigoMesa($codigoMesa)

@@ -32,14 +32,14 @@ CREATE TABLE `items` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `active` int(11) NOT NULL DEFAULT '1',
-  `employee_type` int(11) NOT NULL
+  `sector` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Volcado de datos para la tabla `items`
 --
 
-INSERT INTO `items` (`id`, `name`, `active`, `employee_type`) VALUES
+INSERT INTO `items` (`id`, `name`, `active`, `sector`) VALUES
 (1, 'pinta cerveza artesanal', 1, 2),
 (2, 'bife de chorizo', 1, 3),
 (3, 'bocha de helado de chocolate', 1, 4),

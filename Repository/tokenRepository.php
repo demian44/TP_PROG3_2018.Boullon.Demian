@@ -12,12 +12,13 @@ class TokenRepository
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
              
-            $consulta = $objetoAccesoDato->RetornarConsulta("SELECT password,category FROM users WHERE user = :user");
+            $consulta = $objetoAccesoDato->RetornarConsulta("SELECT password,category,id FROM users WHERE user = :user");
             $consulta->execute(array(":user" => $user->GetUser()));
             $row = $consulta->fetch();
             
             if (isset($row["password"]) && $row["password"] == $user->GetPass()) {
                 $response->SetElement(array("succesToken" => true,"category"=>$row["category"]));
+                UserActionRepository::SaveLogin($row["id"]);
             }
             else{
                 $response->SetMessege("User o pass incorrecto");

@@ -1,6 +1,6 @@
 <?php
 
-class UserApi implements IApiUsable
+class UserApi
 {
     public function GetOne($request, $response, $args)
     {
@@ -11,13 +11,26 @@ class UserApi implements IApiUsable
         $response->getBody()->write('Hola');
     }
 
-    public function GetAll($request, $response, $args)
+    public function GetAllWithInfo($request, $response, $args)
     {
+        try {
+
+            $requestResponse = UserRepository::GetAllWithInfo();
+        } catch (PDOException $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($requestResponse->ToJsonResponse());
     }
 
     public function CargarUno($request, $response, $args)
     {
         try {
+            $userInfo = $response->getHeader("userInfo");
+            UserActionRepository::SaveByUser("Cargar Usuario", $userInfo[1]);
+
             $parsedBody = $request->getParsedBody();
             $user = new User(
                 $parsedBody['name'],
@@ -25,7 +38,7 @@ class UserApi implements IApiUsable
                 $parsedBody['password'],
                 $parsedBody['category']
             );
-            
+
             $requestResponse = UserRepository::Insert($user);
         } catch (PDOException $exception) {
             $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
@@ -42,5 +55,18 @@ class UserApi implements IApiUsable
 
     public function ModificarUno($request, $response, $args)
     {
+    }
+    public function DayAndHourEntry($request, $response, $args)
+    {
+        try {
+
+            $requestResponse = UserRepository::DayAndHourEntry();
+        } catch (PDOException $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($requestResponse->ToJsonResponse());
     }
 }

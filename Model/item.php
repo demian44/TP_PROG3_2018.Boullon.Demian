@@ -5,6 +5,7 @@ class Item
     private $id;
     private $name;
     private $employeeType;
+    private $precio;
 
     public function GetId()
     {
@@ -29,14 +30,25 @@ class Item
         }
     }
 
-    public function GetEmployeeType()
+    public function GetSector()
     {
         return $this->employeeType;
     }
-    public function SetEmployeeType(int $employeeType)
+    public function SetSector(int $employeeType)
     {
         if ($employeeType >= 0) {
             $this->employeeType = $employeeType;
+        }
+    }
+   
+    public function GetPrecio()
+    {
+        return $this->precio;
+    }
+    public function SetPrecio(int $precio)
+    {
+        if ($precio >= 0) {
+            $this->precio = $precio;
         }
     }
 
@@ -48,4 +60,5 @@ class Item
     {
         $this->name = $name;
     }
+ 
 }

@@ -22,19 +22,24 @@ include_once './Model/requestResponse.php';
 include_once './Model/order.php';
 include_once './Model/mesa.php';
 include_once './Model/user.php';
+include_once './Model/userInfo.php';
+include_once './Model/userAction.php';
 
 //Repository
 include_once './Repository/AccesoDatos.php';
 include_once './Repository/userRepository.php';
+include_once './Repository/userActionRepository.php';
 include_once './Repository/tokenRepository.php';
 include_once './Repository/orderRepository.php';
 include_once './Repository/mesaRepository.php';
+include_once './Repository/itemRepository.php';
 
 //Api
 include_once './Api/userApi.php';
 include_once './Api/tokenApi.php';
 include_once './Api/mesaApi.php';
 include_once './Api/orderApi.php';
+include_once './Api/ItemApi.php';
 
 include_once './Api/Token/token.php';
 include_once './Api/Token/token.php';
@@ -42,5 +47,7 @@ include_once './Api/Token/token.php';
 include_once './Middleware/orderMiddleware.php';
 include_once './Middleware/userMiddleware.php';
 include_once './Middleware/loginMiddleware.php';
+include_once './Middleware/mesaMiddleware.php';
+include_once './Middleware/itemMiddleware.php';
 
 require './vendor/autoload.php';

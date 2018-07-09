@@ -1,6 +1,6 @@
 <?php
 
-class MesaRepository
+class ItemRepository
 {
     public static function GetAll()
     {
@@ -8,23 +8,22 @@ class MesaRepository
         $arrayMesa = [];
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-            $mysqlQuery = 'SELECT * FROM mesas WHERE active = 1 ';
-
+            $mysqlQuery = 'SELECT * FROM items WHERE active = 1 ';
+            
             $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
-
+            
             $row = $consulta->execute();
             $lastOrderId = -1;
-
+            $array = [];
             foreach ($consulta->fetchAll() as $row) {
-                $mesa = new Mesa();
-                $mesa->SetId($row["id"]);
-                $mesa->SetCode($row["code"]);
-                $mesa->SetStatus($row["status"]);
-                array_push($arrayMesa, $mesa->ToJson());
-
+                
+                $item["id"]= $row["id"];
+                $item["name"]= $row["name"];
+                $item["precio"]= $row["precio"];
+                $item["sector"]= $row["sector"];
+                array_push($array, $item);
             }
-
-            $return = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $arrayMesa);
+            $return = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $array);
 
         } catch (PDOException $exception) {
             throw $exception;
@@ -38,18 +37,21 @@ class MesaRepository
     /**
      * Agregar Throw.
      */
-    public static function Insert(Mesa $mesa)
+    public static function Save(Item $item)
     {
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-
-            $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO mesas (code) '
-                . 'VALUES(:code)');
-            $consulta->bindValue(':code', $mesa->GetCode(), PDO::PARAM_STR);
+            $item->GetName();
+            $item->GetSector();
+            $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO items (name,sector,precio) '
+                . 'VALUES(:name,:sector,:precio)');
+            $consulta->bindValue(':name', $item->GetName(), PDO::PARAM_STR);
+            $consulta->bindValue(':sector', $item->GetSector(), PDO::PARAM_STR);
+            $consulta->bindValue(':precio', $item->GetPrecio(), PDO::PARAM_STR);
 
             if (!$consulta->execute()) { //Si no retorna 1 no guardó el elemento
                 $response = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE,
-                    'Error al guardar la mesa en la base de datos.');
+                    'Error al guardar el item en la base de datos.');
             } else {
                 $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, 'EXITO');
             }

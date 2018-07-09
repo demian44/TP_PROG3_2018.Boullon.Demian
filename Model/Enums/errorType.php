@@ -11,4 +11,5 @@ class REQUEST_ERROR_TYPE
     const TOKEN = 4;
     const NODATA = 5;
     const NOEXIST = 6;
+    const DEMORADO = 7;
 }

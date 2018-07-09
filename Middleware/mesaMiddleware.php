@@ -1,94 +1,31 @@
 <?php
 class MesaMiddleware
 {
-    public function CheckExist($request, $response, $next)
+    public function CheckMesaIdSetted($request, $response, $next)
     {
-        $flag = false;
         $parsedBody = $request->getParsedBody();
-        $mesaId = $parsedBody['mesaId'];
-        $response = MesaRespository::CheckId($mesaId);
-        return $response;
-    }
 
-    public function CheckCargaEdit($request, $response, $next)
-    {
-        $flag = false;
-        $parsedBody = $request->getParsedBody();
-        $file = $request->getUploadedFiles();
-        $destino = './fotos/';
-        $mensaje = 'Faltan datos';
+        if (isset($parsedBody["mesaId"])) {
+            $newResponse = $response->withAddedHeader("mesaId", isset($parsedBody["mesaId"]));
+            $response = $next($request, $newResponse);
 
-        if (isset($parsedBody['id']) && isset($parsedBody['idMedia']) && isset($parsedBody['clientName']) &&
-            isset($parsedBody['fecha']) && isset($parsedBody['importe'])) {
-
-            $flag = true;
-        }
-
-        $date = explode("/", $parsedBody['fecha']);
-
-        if ($flag && count($date) != 3) {
-            $flag = false;
-            $mensaje = 'Formato fecha invalido (debe ser 00/00/000)';
-        }
-
-        if ($flag) {
-            $response = $next($request, $response);
         } else {
-            $result = new ApiResponse(REQUEST_ERROR_TYPE::NODATA, $mensaje);
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, 'Campo mesaId no cargado.');
             $response->getBody()->write($result->ToJsonResponse());
         }
 
         return $response;
     }
 
-    public function ExisteMediaId($request, $response, $next)
+    public function CheckIfExist($request, $response, $next)
     {
         $parsedBody = $request->getParsedBody();
-
-        $media = MediaRepository::TraerPorId($parsedBody['idMedia']);
-        if (!is_null($media)) {
-            $response = $next($request, $response);
-
-        } else {
-            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, 'No existe la media.');
-            $response->getBody()->write($result->ToJsonResponse());
-        }
-
-        return $response;
-    }
-
-    public function ExistAllItems($request, $response, $next)
-    {
-        $parsedBody = $request->getParsedBody();
-        $orderItems = json_decode($parsedBody['orderIdItems']);
-        $idItems = array_map(function ($item) {
-            return $item->id;
-        },$orderItems);
-
-        //  $orderItems
-        $items = OrderRepository::CheckItems($idItems);
-        if (count($items)) {
-            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST,
-                'Faltan ids: ' . json_encode($items));
-            $response->getBody()->write($result->ToJsonResponse());
-        } else {
-            $response = $next($request, $response);
-        }
-
-        return $response;
-    }
-
-    public function ExisteVenta($request, $response, $next)
-    {
-        $parsedBody = $request->getParsedBody();
-
-        $venta = VentaRepository::TraerPorId($parsedBody['id']);
-        if (!is_null($venta)) {
-            $array = [$venta->GetFoto(), $venta->GetId()];
-            $newResponse = $response->withAddedHeader("venta", $array);
+        $mesaCode = MesaRepository::GetCodeById($parsedBody["mesaId"]);
+        if ($mesaCode != null) {
+            $newResponse = $response->withAddedHeader("mesaCode", $mesaCode);
             $response = $next($request, $newResponse);
         } else {
-            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, 'No existe la venta.');
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, 'Id inexistente no cargado.');
             $response->getBody()->write($result->ToJsonResponse());
         }
 
