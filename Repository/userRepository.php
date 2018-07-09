@@ -70,6 +70,78 @@ class UserRepository
         return $result;
     }
 
+    public static function GetSectorOperation()
+    {
+        $return = false;
+        $arrayUsuarios = [];
+        try {
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT count(user_actions.id) total,
+            users.category FROM user_actions
+            INNER JOIN users ON users.id = user_actions.user_id
+            GROUP BY users.category');
+            $consulta->execute();
+            $rows = $consulta->fetchall();
+            $resultados = [];
+            if ($rows) {
+                foreach ($rows as $row) {
+                    $respuesta["total"] = $row["total"];
+                    $respuesta["sector"] = USER_CATEGORY::String($row["category"]);
+                    array_push($resultados, $respuesta);
+                }
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $resultados);
+            } else {
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, "Error en la consulta revise los datos ingresados.");
+            }
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $result;
+    }
+
+    public static function GetBySectorOperation($sector)
+    {
+        $return = false;
+        echo $sector;
+        $arrayUsuarios = [];
+        try {
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+            $consulta = $objetoAccesoDato->RetornarConsulta('SELECT count(user_actions.id) total,
+            users.user, users.id as users_id FROM user_actions
+            INNER JOIN users ON users.id = user_actions.user_id
+            WHERE users.category = :sector
+            GROUP BY users.id
+            ');
+            $consulta->bindValue(':sector', $sector, PDO::PARAM_INT);
+
+            $consulta->execute();
+            $rows = $consulta->fetchall();
+            $resultados = [];
+            if ($rows) {
+                foreach ($rows as $row) {
+                    $respuesta["total"] = $row["total"];
+                    $respuesta["user"] = $row["user"];
+                    $respuesta["user_id"] = $row["users_id"];
+                    array_push($resultados, $respuesta);
+                }
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $resultados);
+            } else {
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, "Error en la consulta revise los datos ingresados.");
+            }
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $result;
+    }
+
     public static function DayAndHourEntry()
     {
         $return = false;

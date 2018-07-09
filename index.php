@@ -3,11 +3,7 @@
 include_once './elements.php';
 
 $app = new \Slim\App();
-/**
- *
- * IMPORTANTE AGREGUE TIEMPO ESTIMADO POR ITEM, EMPLEADO A CARGO Y ESTADO.
- *
- */
+
 $app->group('/order', function () {
     $this->post('/new', \OrderApi::class . ':Set')
         ->add(\OrderMiddleware::class . ':ExistAllItems')
@@ -15,7 +11,7 @@ $app->group('/order', function () {
         ->add(\OrderMiddleware::class . ':CheckCarga')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
 
-    $this->post('/takeOrder', \OrderApi::class . ':TakeOrder')        
+    $this->post('/takeOrder', \OrderApi::class . ':TakeOrder')
         ->add(\OrderMiddleware::class . ':ExistOrderItems')
         ->add(\OrderMiddleware::class . ':CheckTakedOrders')
         ->add(\OrderMiddleware::class . ':CheckUserTaking');
@@ -39,18 +35,31 @@ $app->group('/order', function () {
 $app->group('/users', function () {
 
     $this->post('', \UserApi::class . ':CargarUno')
-    ->add(\UserMiddleware::class . ':UserRepetido')
-    ->add(\UserMiddleware::class . ':CheckUserData');
-    
-    $this->get('/allWithInfo', \UserApi::class . ':GetAllWithInfo')
-    ->add(\LoginMiddleware::class . ':ValidarSocio');
-    
-    $this->get('/dayAndHourEntry', \UserApi::class . ':DayAndHourEntry')
-    ->add(\LoginMiddleware::class . ':ValidarSocio');
-    
+        ->add(\UserMiddleware::class . ':UserRepetido')
+        ->add(\UserMiddleware::class . ':CheckUserData');
 })->add(\LoginMiddleware::class . ':ValidarToken');
 
+
+$app->group('/informes', function () {
+
+    $this->get('/allWithInfo', \UserApi::class . ':GetAllWithInfo');
+
+    $this->get('/dayAndHourEntry', \UserApi::class . ':DayAndHourEntry');
+    
+    $this->get('/sectorOperation', \UserApi::class . ':SectorOperation');
+    
+    $this->post('/sectorOperation', \UserApi::class . ':GetBySectorOperation');
+    
+    $this->get('/resumenPedidos', \OrderApi::class . ':ResumenPedidos');
+
+})->add(\LoginMiddleware::class . ':ValidarSocio')
+    ->add(\LoginMiddleware::class . ':ValidarToken');
+
+
+
 $app->get('/checkOrder', \OrderApi::class . ':GetStateOrder');
+$app->get('/orderInfoToEvaluate', \OrderApi::class . ':GetOrderInfoToEvaluate');
+$app->post('/setEvaluation', \OrderApi::class . ':SetEvaluation');
 
 $app->group('/mesas', function () {
     $this->post('', \MesaApi::class . ':CargarUno')
@@ -91,24 +100,3 @@ $app->group('/login', function () {
 })->add(\LoginMiddleware::class . ':checkLoginData');
 
 $app->run();
-
-/*
-<?php
-$datetime1 = new DateTime('2009-10-11');
-$datetime2 = new DateTime('2009-10-13');
-$interval = $datetime1->diff($datetime2);
-echo $interval->format('%R%a días');
-$date = date('Y/m/d H:i');
-
-$nuevaHora = date('Y/m/d H:i', time() + 600);
-echo "\n";
-echo "\n";
-echo "\n";
-echo "primera fecha: $date";
-echo "\n";
-echo "nueva fecha: $nuevaHora";
-echo "\n";
-echo "\n";
-echo "\n";
-?>
- */

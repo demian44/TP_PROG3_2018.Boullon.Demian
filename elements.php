@@ -24,6 +24,7 @@ include_once './Model/mesa.php';
 include_once './Model/user.php';
 include_once './Model/userInfo.php';
 include_once './Model/userAction.php';
+include_once './Model/statistic.php';
 
 //Repository
 include_once './Repository/AccesoDatos.php';

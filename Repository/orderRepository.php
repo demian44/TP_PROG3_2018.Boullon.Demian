@@ -59,9 +59,31 @@ class OrderRepository
         return $return;
     }
 
+    private static function GetCocinerosFromOrderId(int $id): array
+    {
+        $cocineros = [];
+        if ($id >= 0) {
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+            $mysqlQuery = 'SELECT users.id,users.name FROM order_item
+            INNER JOIN users ON order_item.employee_take_it = users.id
+            WHERE order_item.order_id = ' . $id . '
+            GROUP BY users.id
+            AND users.category = 3';
+
+            $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+            $consulta->execute();
+            foreach ($consulta->fetchAll() as $row) {
+                $cocinero["nombre"] = $row["name"];
+                $cocinero["id"] = $row["id"];
+                array_push($cocineros, $cocinero);
+            }
+        }
+        return $cocineros;
+    }
+
     public static function GetPendings(string $imgUrl, string $user)
     {
-
+        echo "$user";
         $arrayOrders = [];
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
@@ -77,15 +99,12 @@ class OrderRepository
                 AND orders.active = 1
                 AND order_item.active = 1
                 AND order_item.status = :status';
-
             $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
             $consulta->bindValue(':user', $user, PDO::PARAM_STR);
             $consulta->bindValue(':status', ORDER_STATUS::MAKING, PDO::PARAM_INT);
-
             $row = $consulta->execute();
             $lastOrderId = -1;
             foreach ($consulta->fetchAll() as $row) {
-
                 if ($lastOrderId != $row["order_id"]) {
                     $lastOrderId = $row["order_id"];
                     $order = new Order($row["client_name"], $row["code"], $row["mesa_id"]);
@@ -95,21 +114,16 @@ class OrderRepository
                     $order->SetFoto($imgUrl . $row["foto"]);
                     array_push($arrayOrders, $order);
                 }
-
                 $orderItem = new OrderItem($row["order_item_id"]);
                 $orderItem->SetCant($row["cant"]);
-
                 $orderItem->SetName($row["name"]);
                 $orderItem->SetSector($row["sector"]);
                 // echo "WEEEE";
                 // var_dump($arrayOrders[count($arrayOrders) - 1]);
                 $arrayOrderItem = $arrayOrders[count($arrayOrders) - 1]->GetItems();
-
                 $array = $arrayOrders[count($arrayOrders) - 1]->GetItems();
                 array_push($arrayOrderItem, $orderItem);
-
                 $arrayOrders[count($arrayOrders) - 1]->SetItems($arrayOrderItem);
-
             }
             $arrayOrders = Order::ToJsonArray($arrayOrders);
             if (count($arrayOrders) > 0) {
@@ -117,14 +131,13 @@ class OrderRepository
             } else {
                 $return = new ApiResponse(REQUEST_ERROR_TYPE::NODATA, "Sin elementos");
             }
-
         } catch (PDOException $exception) {
             throw $exception;
         } catch (Exception $exception) {
             throw $exception;
         }
-
         return $return;
+
     }
 
     public static function GetByOrderItemId(int $orderItemId): Order
@@ -169,8 +182,8 @@ class OrderRepository
             if (strtotime($fecha) < strtotime($row["estimate_time"])) {
                 $diferencia = strtotime($row["estimate_time"]) - strtotime($fecha);
                 $diferencia = ($diferencia / 60); //Saco la diferencia en minutos
-                $return = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $diferencia." minutos.");
-            } else {//EN este caso es cuando no está seteado el tiempo estimado o cuando se paso
+                $return = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $diferencia . " minutos.");
+            } else { //EN este caso es cuando no está seteado el tiempo estimado o cuando se paso
                 $return = new ApiResponse(REQUEST_ERROR_TYPE::DEMORADO, "En instantes...");
             }
         } else {
@@ -180,8 +193,6 @@ class OrderRepository
         return $return;
 
     }
-    
-  
 
     public static function MakeGetQueryByCategory(int $category, int $status)
     {
@@ -229,20 +240,21 @@ class OrderRepository
     /**
      * Agregar Throw.
      */
-    public static function InsertOrder(Order $order)
+    public static function InsertOrder(Order $order, int $mozoId)
     {
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
 
             $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO orders '
-                . '(client_name,code,ordered_time,mesa_id,foto) '
-                . 'VALUES(:client_name,:code,:ordered_time,:mesa_id,:foto)');
+                . '(client_name,code,ordered_time,mesa_id,foto,mozo_id) '
+                . 'VALUES(:client_name,:code,:ordered_time,:mesa_id,:foto,:mozo_id)');
 
             $consulta->bindValue(':client_name', $order->GetCliente(), PDO::PARAM_STR);
             $consulta->bindValue(':code', $order->GetCode(), PDO::PARAM_STR);
             $consulta->bindValue(':ordered_time', $order->GetOrderedTime(), PDO::PARAM_STR);
             $consulta->bindValue(':mesa_id', $order->GetMesaId(), PDO::PARAM_INT);
             $consulta->bindValue(':foto', $order->GetFoto(), PDO::PARAM_INT);
+            $consulta->bindValue(':mozo_id', $mozoId, PDO::PARAM_INT);
 
             if (!$consulta->execute()) { //Si no retorna 1 no guardó el elemento
                 $response = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, 'Error al guardar la orden en la base de datos.');
@@ -522,7 +534,8 @@ class OrderRepository
         orders.ordered_time,SUM(items.precio) as total FROM  orders
         INNER JOIN order_item ON order_item.order_id = orders.id
         INNER JOIN items ON order_item.item_id = items.id
-        GROUP BY orders.id');
+        GROUP BY orders.id
+        ');
         $consulta->execute();
 
         $array = [];
@@ -533,5 +546,187 @@ class OrderRepository
             $statistics["importeTotal"] = $row["total"];
             array_push($array, $statistics);
         }
+    }
+
+    public static function SetEvaluation(Statisctic $statistic)
+    {
+
+        try {
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+            $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO order_evaluation
+                (order_code,mesa_evaluation,mesa_code ,mozo_id,mozo_evaluation,restaurant_evaluation)
+                values(:order_code,:mesa_evaluation,:mesa_code ,:mozo_id,:mozo_evaluation,
+                :restaurant_evaluation)');
+            $consulta->bindValue(':order_code', $statistic->GetOrderCode(), PDO::PARAM_STR);
+            $consulta->bindValue(':mesa_evaluation', $statistic->GetMesaEvaluation(), PDO::PARAM_INT);
+            $consulta->bindValue(':mesa_code', $statistic->GetMesaCode(), PDO::PARAM_STR);
+            $consulta->bindValue(':mozo_id', $statistic->GetMozoId(), PDO::PARAM_INT);
+            $consulta->bindValue(':mozo_evaluation', $statistic->GetMozoEvaluation(), PDO::PARAM_INT);
+            $consulta->bindValue(':restaurant_evaluation', $statistic->GetRestaurantEvaluation(), PDO::PARAM_INT);
+            $consulta->execute();
+
+            foreach ($statistic->GetCocineros() as $cocinero) {
+                $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO cocinero_evaluacion
+                    (order_code,evaluation,cocinero_id)
+                    values(:order_code,:evaluation,:cocinero_id)');
+                $consulta->bindValue(':order_code', $statistic->GetOrderCode(), PDO::PARAM_STR);
+                $consulta->bindValue(':evaluation', $cocinero->evaluation, PDO::PARAM_INT);
+                $consulta->bindValue(':cocinero_id', $cocinero->id, PDO::PARAM_INT);
+                $consulta->execute();
+            }
+
+            $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, "Evaluacion entregada"); // $succesResponse);
+
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $response;
+
+    }
+
+    /**
+     * Solo para socios.
+     */
+    public static function GetOrderInfoToEvaluate(string $orderCode)
+    {
+        $statistics = [];
+        try {
+
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+            $mysqlQuery = 'SELECT orders.code as order_code,orders.id as order_id, mesas.code as mesa_code,
+            users.name as mozo,users.id as mozo_id FROM orders
+            INNER JOIN mesas ON orders.mesa_id = mesas.id
+            INNER JOIN users ON orders.mozo_id = users.id
+            WHERE orders.code = :code AND orders.status = :status ';
+
+            $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+            $consulta->bindValue(':code', $orderCode, PDO::PARAM_STR);
+            $consulta->bindValue(':status', ORDER_STATUS::EATED, PDO::PARAM_INT);
+            $consulta->execute();
+
+            $row = $consulta->fetch();
+            if ($row) {
+                $statistic = new Statisctic();
+                $statistic->SetMozo($row["mozo"]);
+                $statistic->SetMozoId($row["mozo_id"]);
+                $statistic->SetOrderCode($row["order_code"]);
+                $statistic->SetMesaCode($row["mesa_code"]);
+                $statistic->SetCocineros(Self::GetCocinerosFromOrderId($row["order_id"]));
+                $return = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $statistic->ToJson());
+            } else {
+                $return = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, "Sin ordenes coincientes  ");
+            }
+
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $return;
+    }
+    // "lo que más se vendió .
+    // b- lo que menos se vendió .
+    // c- los que no se entregaron en el tiempo estipulado.
+    // d- los cancelados.
+    // 9"
+    public static function ResumenPedidos()
+    {
+        try {
+
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+            $mysqlQuery = 'SELECT SUM(order_item.cant) total, order_item.item_id,items.name
+            FROM order_item
+            INNER JOIN items ON items.id = order_item.item_id
+            GROUP BY order_item.item_id';
+
+            $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+            $consulta->execute();
+            $max;
+            $min;
+
+            $flag = true;
+            foreach ($consulta->fetchAll() as $row) {
+                if ($flag) {
+                    $max["total"] = $row["total"];
+                    $max["id"] = $row["item_id"];
+                    $max["name"] = $row["name"];
+                    $min["total"] = $row["total"];
+                    $min["id"] = $row["item_id"];
+                    $min["name"] = $row["name"];
+                } else {
+                    if ($max["total"] < $row["total"]) {
+                        $max["total"] = $row["total"];
+                        $max["id"] = $row["item_id"];
+                        $max["name"] = $row["name"];
+                    }
+                    if ($min["total"] > $row["total"]) {
+                        $min["total"] = $row["total"];
+                        $min["id"] = $row["item_id"];
+                        $min["name"] = $row["name"];
+                    }
+                }
+            }
+            
+            $demoradosCancelados = Self::GetCanceladosDemorados();
+            $respuesta["menosPedido"] = $min;
+            $respuesta["masPedido"] = $max;
+            $respuesta["demorados"] = $demoradosCancelados["demorados"];
+            $respuesta["cancelados"] = $demoradosCancelados["cancelados"];
+            $return = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $respuesta);
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $return;
+    }
+
+    private static function GetCanceladosDemorados()
+    {
+        $statistics = [];
+        try {
+
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+            $mysqlQuery = 'SELECT orders.id, orders.code FROM orders
+            WHERE estimate_time < delivered_time
+            AND status in (3,4)';
+            $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+            $consulta->execute();
+            $demorados = [];
+            foreach ($consulta->fetchAll() as $row) {
+                $demorado["code"] = $row["code"];
+                $demorado["id"] = $row["id"];
+                array_push($demorados, $demorado);
+            }
+
+            $mysqlQuery = 'SELECT orders.id, orders.code FROM orders
+            WHERE orders.status = 5';
+            $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+
+            $consulta->execute();
+            $cancelados = [];
+            foreach ($consulta->fetchAll() as $row) {
+                $cancelado["code"] = $row["code"];
+                $cancelado["id"] = $row["id"];
+                array_push($cancelados, $cancelado);
+            }
+
+            $respuesta["demorados"] = $demorados;
+            $respuesta["cancelados"] = $cancelados;
+            return $respuesta;
+
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $return;
     }
 }

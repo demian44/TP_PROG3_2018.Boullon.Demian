@@ -2,9 +2,6 @@
 
 class UserApi
 {
-    public function GetOne($request, $response, $args)
-    {
-    }
 
     public function Ver($request, $response, $args)
     {
@@ -16,6 +13,38 @@ class UserApi
         try {
 
             $requestResponse = UserRepository::GetAllWithInfo();
+        } catch (PDOException $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($requestResponse->ToJsonResponse());
+    }
+
+    public function SectorOperation($request, $response, $args)
+    {
+        try {
+            $userInfo = $response->getHeader("userInfo");
+            UserActionRepository::SaveByUser("Ver operaciones de cada sector", $userInfo[1]);
+
+            $requestResponse = UserRepository::GetSectorOperation();
+        } catch (PDOException $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($requestResponse->ToJsonResponse());
+    }
+    public function GetBySectorOperation($request, $response, $args)
+    {
+        try {
+            $userInfo = $response->getHeader("userInfo");
+            UserActionRepository::SaveByUser("Ver operaciones por sector", $userInfo[1]);
+
+            $parsedBody = $request->getParsedBody();
+            $requestResponse = UserRepository::GetBySectorOperation($parsedBody["sector"]);
         } catch (PDOException $exception) {
             $requestResponse = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {
@@ -49,13 +78,6 @@ class UserApi
         $response->getBody()->write($requestResponse->ToJsonResponse());
     }
 
-    public function BorrarUno($request, $response, $args)
-    {
-    }
-
-    public function ModificarUno($request, $response, $args)
-    {
-    }
     public function DayAndHourEntry($request, $response, $args)
     {
         try {

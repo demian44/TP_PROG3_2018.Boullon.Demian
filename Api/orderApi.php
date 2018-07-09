@@ -1,6 +1,6 @@
 <?php
 
-class OrderApi implements IApiUsable
+class OrderApi
 {
     public function GetOne($request, $response, $args)
     {
@@ -154,8 +154,8 @@ class OrderApi implements IApiUsable
                     }
 
                     $order->SetFoto($foto);
-
-                    $internalResponse = OrderRepository::InsertOrder($order);
+                    $userData = UserRepository::GetByUser($userInfo[1]/*user*/);
+                    $internalResponse = OrderRepository::InsertOrder($order, $userData->GetId());
                     $existCode = false;
 
                     $result = $internalResponse;
@@ -184,15 +184,57 @@ class OrderApi implements IApiUsable
 
     }
 
-    private function SaveOrder($order)
+    public function GetOrderInfoToEvaluate($request, $response, $args)
     {
+        try {
+          
+            $header = $request->getHeaders();
+            $result = OrderRepository::GetOrderInfoToEvaluate($header["HTTP_ORDERCODE"][0]);
+        } catch (PDOException $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($result->ToJsonResponse());
     }
 
-    public function BorrarUno($request, $response, $args)
+    public function SetEvaluation($request, $response, $args)
     {
+        try {
+            $parsedBody = $request->getParsedBody();
+            $statisctic = new Statisctic();
+            $statisctic->SetMozoId($parsedBody["mozoId"]);
+            $statisctic->SetMozoEvaluation($parsedBody["mozoEvaluation"]);
+            $statisctic->SetMesaCode($parsedBody["mesaCode"]);
+            $statisctic->SetMesaEvaluation($parsedBody["mesaEvaluation"]);
+            $statisctic->SetOrderCode($parsedBody["orderCode"]);
+            $statisctic->SetCocineros(json_decode($parsedBody["cocineros"]));
+            $statisctic->SetRestaurantEvaluation($parsedBody["restaurantEvaluation"]);
+
+            $result = OrderRepository::SetEvaluation($statisctic);
+        } catch (PDOException $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($result->ToJsonResponse());
+    }
+   
+    public function ResumenPedidos($request, $response, $args)
+    {
+        try {
+            $userInfo = $response->getHeader("userInfo");
+            UserActionRepository::SaveByUser("Guardar pedido", $userInfo[1]);
+            $result = OrderRepository::ResumenPedidos();
+        } catch (PDOException $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+
+        $response->getBody()->write($result->ToJsonResponse());
     }
 
-    public function ModificarUno($request, $response, $args)
-    {
-    }
 }

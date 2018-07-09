@@ -142,6 +142,23 @@ class MesaRepository
             $consulta->bindValue(':id', $id, PDO::PARAM_INT);
             $consulta->bindValue(':status', $status, PDO::PARAM_INT);
             $consulta->execute();
+
+            if ($status == MESA_STATUS::CON_CLIENTES_PAGANDO) {
+                $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+                $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE orders set status = ".
+                    ":status WHERE mesa_id = :id");
+                $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+                $consulta->bindValue(':status', ORDER_STATUS::EATED , PDO::PARAM_INT);
+                $consulta->execute();
+                
+                $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE order_item 
+                set order_item.status = :status
+                WHERE order_item.order_id = (SELECT id FROM orders WHERE orders.mesa_id = :id)");
+                $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+                $consulta->bindValue(':status', ORDER_STATUS::EATED , PDO::PARAM_INT);
+                $consulta->execute();
+            }
+
             $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, 'EXITO');
         } catch (PDOException $exception) {
             throw $exception;
