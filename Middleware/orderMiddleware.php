@@ -62,22 +62,32 @@ class OrderMiddleware
         $destino = './fotos/';
         $mensaje = 'Faltan datos';
         $array = [];
-
+        $orderItemsFlag = false;
         if (isset($parsedBody['orderItems']) && json_decode($parsedBody['orderItems']) != null) {
             $orderItems = json_decode($parsedBody['orderItems']);
 
             foreach ($orderItems as $value) {
                 if (property_exists($value, "id") && property_exists($value, "stimatedTime")) {
+                    $orderItemsFlag = true;
                     array_push($array, $value);
                 }
+                else{
+                    $orderItemsFlag = false;
+                    
+                    break;
+                }
             }
+            if($orderItemsFlag){
             //Validamos y cargamos en un arrat a los orderItems;
             $newResponse = $response->withAddedHeader("orderItems", json_encode($array));
             $response = $next($request, $newResponse);
+            }
+            else{
+                $respuesta = new ApiResponse(REQUEST_ERROR_TYPE::NODATA,
+                'orderItems: Elementos corrompidos');
+                $response->getBody()->write($respuesta->ToJsonResponse());
+            }
         } else {
-            $respuesta = new ApiResponse(REQUEST_ERROR_TYPE::NODATA,
-            'Cargar orderItems con comilla doble (ej:[{"id":2,"stimatedTime":15},{"id":2,"stimatedTime":20}]');
-            $response->getBody()->write($respuesta->ToJsonResponse());
 
         }
 

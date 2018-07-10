@@ -7,6 +7,7 @@ $app = new \Slim\App();
 $app->group('/order', function () {
     $this->post('/new', \OrderApi::class . ':Set')
         ->add(\OrderMiddleware::class . ':ExistAllItems')
+        ->add(\MesaMiddleware::class . ':EstaLibre')
         ->add(\MesaMiddleware::class . ':CheckIfExist')
         ->add(\OrderMiddleware::class . ':CheckCarga')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
@@ -14,7 +15,7 @@ $app->group('/order', function () {
     $this->post('/takeOrder', \OrderApi::class . ':TakeOrder')
         ->add(\OrderMiddleware::class . ':ExistOrderItems')
         ->add(\OrderMiddleware::class . ':CheckTakedOrders')
-        ->add(\OrderMiddleware::class . ':CheckUserTaking');
+        ->add(\OrderMiddleware::class . ':CheckUserTaking'); //Distinto de mozo
 
     $this->post('/resolvePendings', \OrderApi::class . ':ResolvePendings')
         ->add(\OrderMiddleware::class . ':ExistOrderItemsToResolve')
@@ -62,7 +63,7 @@ $app->group('/mesas', function () {
     $this->post('', \MesaApi::class . ':CargarUno')
         ->add(\LoginMiddleware::class . ':ValidarSocio');
     $this->get('', \MesaApi::class . ':GetAll')
-        ->add(\LoginMiddleware::class . ':ValidarSocio');
+        ->add(\LoginMiddleware::class . ':ValidarMozo');
     $this->post('/waiting', \MesaApi::class . ':Waiting')
         ->add(\MesaMiddleware::class . ':CheckMesaIdSetted')
         ->add(\LoginMiddleware::class . ':ValidarMozo');

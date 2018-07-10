@@ -31,6 +31,20 @@ class MesaMiddleware
 
         return $response;
     }
+  
+    public function EstaLibre($request, $response, $next)
+    {
+        $parsedBody = $request->getParsedBody();
+        $free = MesaRepository::IsFree($parsedBody["mesaId"]);
+        if ($free) {
+            $response = $next($request, $response);
+        } else {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, 'Mesa ocupada');
+            $response->getBody()->write($result->ToJsonResponse());
+        }
+
+        return $response;
+    }
     public function ValidarFromTo($request, $response, $next)
     {
         $parsedBody = $request->getParsedBody();

@@ -87,14 +87,31 @@ class MesaRepository
     {
         $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
         $consulta = $objetoAccesoDato->RetornarConsulta("SELECT id FROM mesas WHERE id in (:id)");
-        $consulta->bindValue(':id', $id(), PDO::PARAM_INT);
+        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
         $consulta->execute();
-        $rows = $consulta->fetch();
+        $row = $consulta->fetch();
         if ($row) {
             $mesa = new Mesa();
             $mesa->SetCode($row["code"]);
             $mesa->SetId($row["id"]);
             $mesa->SetStatus($row["status"]);
+        }
+
+        return $return;
+    }
+ 
+    public static function IsFree(int $id):bool
+    {
+        $return = false;
+        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+        $consulta = $objetoAccesoDato->RetornarConsulta('SELECT id FROM mesas WHERE id in (:id) 
+         AND status = 0');
+        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+        $consulta->execute();
+        
+        $row = $consulta->fetch();
+        if ($row) {
+           $return = true;
         }
 
         return $return;
