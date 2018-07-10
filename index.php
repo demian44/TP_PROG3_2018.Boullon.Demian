@@ -17,16 +17,14 @@ $app->group('/order', function () {
         ->add(\OrderMiddleware::class . ':CheckUserTaking');
 
     $this->post('/resolvePendings', \OrderApi::class . ':ResolvePendings')
-        ->add(\OrderMiddleware::class . ':ExistOrderItems')
+        ->add(\OrderMiddleware::class . ':ExistOrderItemsToResolve')
         ->add(\OrderMiddleware::class . ':CheckTakedOrders');
-    //MIDDLEWARE PARA EMPLEADOS QUE PUEDEN VER ESTO
 
     $this->post('/deliverOrder', \OrderApi::class . ':DeliverOrder')
         ->add(\OrderMiddleware::class . ':CheckOrder')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
 
     $this->get('/Pendings', \OrderApi::class . ':GetPendings');
-    //MIDDLEWARE PARA EMPLEADOS QUE PUEDEN VER ESTO
 
     $this->get('', \OrderApi::class . ':GetAll');
 
@@ -39,43 +37,42 @@ $app->group('/users', function () {
         ->add(\UserMiddleware::class . ':CheckUserData');
 })->add(\LoginMiddleware::class . ':ValidarToken');
 
-
 $app->group('/informes', function () {
 
     $this->get('/allWithInfo', \UserApi::class . ':GetAllWithInfo');
 
     $this->get('/dayAndHourEntry', \UserApi::class . ':DayAndHourEntry');
-    
+
     $this->get('/sectorOperation', \UserApi::class . ':SectorOperation');
-    
+
     $this->post('/sectorOperation', \UserApi::class . ':GetBySectorOperation');
-    
+
     $this->get('/resumenPedidos', \OrderApi::class . ':ResumenPedidos');
+
+    $this->get('/resumenMesas', \MesaApi::class . ':ResumenMesas');
+
+    $this->post('/facturadoEntreFechas', \MesaApi::class . ':FacturadoEntreFechas')
+        ->add(\MesaMiddleware::class . ':ValidarFromTo');
 
 })->add(\LoginMiddleware::class . ':ValidarSocio')
     ->add(\LoginMiddleware::class . ':ValidarToken');
 
-
-
-$app->get('/checkOrder', \OrderApi::class . ':GetStateOrder');
-$app->get('/orderInfoToEvaluate', \OrderApi::class . ':GetOrderInfoToEvaluate');
-$app->post('/setEvaluation', \OrderApi::class . ':SetEvaluation');
 
 $app->group('/mesas', function () {
     $this->post('', \MesaApi::class . ':CargarUno')
         ->add(\LoginMiddleware::class . ':ValidarSocio');
     $this->get('', \MesaApi::class . ':GetAll')
         ->add(\LoginMiddleware::class . ':ValidarSocio');
-    $this->put('/waiting', \MesaApi::class . ':Waiting')
+    $this->post('/waiting', \MesaApi::class . ':Waiting')
         ->add(\MesaMiddleware::class . ':CheckMesaIdSetted')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
-    $this->put('/eating', \MesaApi::class . ':Eating')
+    $this->post('/eating', \MesaApi::class . ':Eating')
         ->add(\MesaMiddleware::class . ':CheckMesaIdSetted')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
-    $this->put('/paying', \MesaApi::class . ':paying')
+    $this->post('/paying', \MesaApi::class . ':paying')
         ->add(\MesaMiddleware::class . ':CheckMesaIdSetted')
         ->add(\LoginMiddleware::class . ':ValidarMozo');
-    $this->put('/close', \MesaApi::class . ':close')
+    $this->post('/close', \MesaApi::class . ':close')
         ->add(\MesaMiddleware::class . ':CheckMesaIdSetted')
         ->add(\LoginMiddleware::class . ':ValidarSocio');
 
@@ -98,5 +95,13 @@ $app->group('/login', function () {
         ->add(\LoginMiddleware::class . ':ValidarToken');
 
 })->add(\LoginMiddleware::class . ':checkLoginData');
+
+$app->post('/checkOrder', \OrderApi::class . ':GetStateOrder');
+$app->post('/orderInfoToEvaluate', \OrderApi::class . ':GetOrderInfoToEvaluate');
+$app->post('/setEvaluation', \OrderApi::class . ':SetEvaluation')
+    ->add(\OrderMiddleware::class . ':ExisteEvaluacion')
+    ->add(\OrderMiddleware::class . ':ValidarEvaluacionCocineros')
+    ->add(\OrderMiddleware::class . ':ValidarEvaluacion');
+
 
 $app->run();

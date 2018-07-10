@@ -27,7 +27,6 @@ class ItemApi
         $item->SetSector($parsedBody["sector"]);
         $item->SetPrecio($parsedBody["precio"]);
         
-        echo "Asdhasoidsao";
         try {
             $userInfo = $response->getHeader("userInfo");
             UserActionRepository::SaveByUser("Agregar Item", $userInfo[1]);

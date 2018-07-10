@@ -68,22 +68,26 @@ class MesaApi implements IApiUsable
 
     public function Waiting($request, $response, $args)
     {
-        $mesaId = $response->getHeader("mesaId");
+        $parsedBody = $request->getParsedBody();
+        $mesaId = $parsedBody["mesaId"];
         $this->SetStatus($request, $response, $args, $mesaId[0], MESA_STATUS::CON_CLIENTE_ESPERANDO_PEDIDO);
     }
     public function Eating($request, $response, $args)
     {
-        $mesaId = $response->getHeader("mesaId");
+        $parsedBody = $request->getParsedBody();
+        $mesaId = $parsedBody["mesaId"];
         $this->SetStatus($request, $response, $args, $mesaId[0], MESA_STATUS::CON_CLIENTES_COMIENDO);
     }
     public function Paying($request, $response, $args)
     {
-        $mesaId = $response->getHeader("mesaId");
+        $parsedBody = $request->getParsedBody();
+        $mesaId = $parsedBody["mesaId"];
         $this->SetStatus($request, $response, $args, $mesaId[0], MESA_STATUS::CON_CLIENTES_PAGANDO);
     }
     public function Close($request, $response, $args)
     {
-        $mesaId = $response->getHeader("mesaId");
+        $parsedBody = $request->getParsedBody();
+        $mesaId = $parsedBody["mesaId"];
         $this->SetStatus($request, $response, $args, $mesaId[0], MESA_STATUS::CERRADA);
     }
 
@@ -92,7 +96,44 @@ class MesaApi implements IApiUsable
         try {
             $userInfo = $response->getHeader("userInfo");
             UserActionRepository::SaveByUser("Cambiar estado de la mesa.", $userInfo[1]);
+            
             $result = MesaRepository::SetStatus($id, $status);
+        } catch (PDOException $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+        $response->getBody()->write($result->ToJsonResponse());
+    }
+    public function ResumenMesas($request, $response, $args)
+    {
+        try {
+
+            $result = MesaRepository::GetMaxAndMinRepetitions();
+        } catch (PDOException $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
+        } catch (Exception $exception) {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
+        }
+        $response->getBody()->write($result->ToJsonResponse());
+    }
+
+    public function FacturadoEntreFechas($request, $response, $args)
+    {
+        try {
+            $parsedBody = $request->getParsedBody();
+
+            if (isset($parsedBody["to"]) && isset($parsedBody["from"]) &&
+                isset($parsedBody["mesaId"])) {
+                $to = $parsedBody["to"];
+                $from = $parsedBody["from"];
+                $id = $parsedBody["mesaId"];
+
+                $result = MesaRepository::FacturadoEntreFechas($from, $to, $id);
+            } else {
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NODATA, "Faltan Campos");
+            }
+
         } catch (PDOException $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {

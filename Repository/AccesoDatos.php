@@ -8,11 +8,20 @@ class AccesoDatos
     private function __construct()
     {
         try {
-            $this->_objetoPDO = new PDO('mysql:host=localhost;dbname=la_comanda;charset=utf8', 'root', '', array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
-            // $this->_objetoPDO = new PDO('mysql:host=databases-auth.000webhost.com/index.php;dbname=id5177047_la_comanda;charset=utf8', 'id5177047_demianbo', '123456', array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+            // $this->_objetoPDO = new PDO('mysql:host=localhost;dbname=la_comanda;charset=utf8', 'root', '', array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+            $this->_objetoPDO = new PDO(
+                'mysql:host=localhost;dbname=id5177047_la_comanda;charset=utf8',
+                'id5177047_demianbo', 'zorro001',
+                array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
             $this->_objetoPDO->exec('SET CHARACTER SET utf8');
+            
+            // $this->_objetoPDO = new PDO(
+            //     'mysql:host=localhost;dbname=id6442020_la_comanda;charset=utf8',
+            //     'id6442020_demianbo	', 'zorro001',
+            //     array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+            // $this->_objetoPDO->exec('SET CHARACTER SET utf8');
         } catch (PDOException $e) {
-            echo 'Error!!!<br/>'.$e->getMessage();
+            echo 'Error!!!<br/>' . $e->getMessage();
 
             die();
         }
@@ -23,7 +32,8 @@ class AccesoDatos
         return $this->_objetoPDO->prepare($sql);
     }
 
-    public static function DameUnObjetoAcceso()//singleton
+    public static function DameUnObjetoAcceso() //singleton
+
     {
         if (!isset(self::$_objetoAccesoDatos)) {
             self::$_objetoAccesoDatos = new AccesoDatos();

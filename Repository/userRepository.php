@@ -106,7 +106,6 @@ class UserRepository
     public static function GetBySectorOperation($sector)
     {
         $return = false;
-        echo $sector;
         $arrayUsuarios = [];
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();

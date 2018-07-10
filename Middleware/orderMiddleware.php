@@ -75,9 +75,9 @@ class OrderMiddleware
             $newResponse = $response->withAddedHeader("orderItems", json_encode($array));
             $response = $next($request, $newResponse);
         } else {
-            $response->getBody()->write(
-                (new ApiResponse(REQUEST_ERROR_TYPE::NODATA, 
-                "Cargar orderItems con comilla doble (ej:[{'id':2,'stimatedTime':15},{'id':2,'stimatedTime':20}"))->ToJsonResponse());
+            $respuesta = new ApiResponse(REQUEST_ERROR_TYPE::NODATA,
+            'Cargar orderItems con comilla doble (ej:[{"id":2,"stimatedTime":15},{"id":2,"stimatedTime":20}]');
+            $response->getBody()->write($respuesta->ToJsonResponse());
 
         }
 
@@ -114,12 +114,32 @@ class OrderMiddleware
 
     public function ExistOrderItems($request, $response, $next)
     {
-        $orderItems = $response->getHeader("orderItems");
+        $parsedBody = $request->getParsedBody();
+        $orderItems =  $parsedBody["orderItems"];
         $user = $response->getHeader("userInfo");
-        $orderItems = json_decode($orderItems[0]);
+        $orderItems = json_decode($orderItems);
         // Vamos a chequear los orderItems para ver si existen y si no fueron tomados
         $problem = "";
         if (OrderRepository::CheckOrderItems($orderItems, $user[0]/*category*/, $problem)) {
+            $response = $next($request, $response);
+        } else {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST,
+                $problem);
+            $response->getBody()->write($result->ToJsonResponse());
+        }
+
+        return $response;
+    }
+    
+    public function ExistOrderItemsToResolve($request, $response, $next)
+    {
+        $parsedBody = $request->getParsedBody();
+        $orderItems =  $parsedBody["orderItems"];
+        $user = $response->getHeader("userInfo");
+        $orderItems = json_decode($orderItems);
+        // Vamos a chequear los orderItems para ver si existen y si no fueron tomados
+        $problem = "";
+        if (OrderRepository::ExistOrderItemsToResolve($orderItems, $user[0]/*category*/, $problem)) {
             $response = $next($request, $response);
         } else {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST,
@@ -215,4 +235,89 @@ class OrderMiddleware
         return $response;
     }
 
+    public function ValidarEvaluacion($request, $response, $next)
+    {
+        $parsedBody = $request->getParsedBody();
+        if (isset($parsedBody["mozoId"]) && isset($parsedBody["mozoEvaluation"])
+            && isset($parsedBody["mesaCode"]) && isset($parsedBody["mesaEvaluation"])
+            && isset($parsedBody["orderCode"]) && isset($parsedBody["cocineros"])
+            && isset($parsedBody["restaurantEvaluation"]) && isset($parsedBody["comentario"])) {
+
+            if (isset($parsedBody["mozoId"]) && is_numeric($parsedBody["mozoEvaluation"]) && $parsedBody["mozoEvaluation"] < 11
+                && $parsedBody["mozoEvaluation"] > -1 && is_numeric($parsedBody["mesaEvaluation"]) && $parsedBody["mesaEvaluation"] < 11
+                && $parsedBody["mesaEvaluation"] > -1 && is_numeric($parsedBody["restaurantEvaluation"]) && $parsedBody["restaurantEvaluation"] < 11
+                && $parsedBody["restaurantEvaluation"] > -1 && strlen($parsedBody["comentario"]) < 66) {
+
+                $response = $next($request, $response);
+
+            } else {
+
+                $messege = "Error de formato en daos";
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, $messege);
+                $response->getBody()->write($result->ToJsonResponse());
+
+            }
+        } else {
+            $messege = "Cargar todos los datos (mozoId,mozoEvaluation,mesaCode," .
+                "mesaEvaluation,orderCode,cocineros,restaurantEvaluation,comentario)";
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, $messege);
+            $response->getBody()->write($result->ToJsonResponse());
+        }
+
+        return $response;
+    }
+
+    public function ValidarEvaluacionCocineros($request, $response, $next)
+    {
+        $parsedBody = $request->getParsedBody();
+
+        $cocineros = json_decode($parsedBody["cocineros"]);
+
+        if (!is_null($cocineros) && is_array($cocineros)) {
+            $orderGood = false;
+            foreach ($cocineros as $value) {
+                $orderGood = true;
+                if (!(property_exists($value, "nombre") && property_exists($value, "id")
+                    && property_exists($value, "evaluation"))) {
+                    $orderGood = false;
+                    break;
+                }
+            }
+
+            if ($orderGood) {
+                $response = $next($request, $response);
+            } else {
+                $messege = 'formato de campo cocineros [{"nombre":"Martin","id":27,"evaluation":7},{"nombre":"Marcelo","id":28,"evaluation":8}]';
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, $messege);
+                $response->getBody()->write($result->ToJsonResponse());
+            }
+
+        } else {
+            $messege = "Cargar todos los datos (mozoId,mozoEvaluation,mesaCode," .
+                "mesaEvaluation,orderCode,cocineros,restaurantEvaluation,comentario)";
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, $messege);
+            $response->getBody()->write($result->ToJsonResponse());
+        }
+
+        return $response;
+    }
+
+    public static function ExisteEvaluacion($request, $response, $next)
+    {
+        $parsedBody = $request->getParsedBody();
+        $orderCode = $parsedBody['orderCode'];
+        if (!OrderRepository::CheckEvaluation($orderCode)) {
+            if (OrderRepository::ExistOrderCOde($orderCode)) {
+                $response = $next($request, $response);
+            } else {
+                $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, "Codigo inexistente");
+                $response->getBody()->write($result->ToJsonResponse());
+            }
+        } else {
+            $result = new ApiResponse(REQUEST_ERROR_TYPE::NOEXIST, "Ya se realizo la evaluacion");
+            $response->getBody()->write($result->ToJsonResponse());
+        }
+
+        return $response;
+    }
 }

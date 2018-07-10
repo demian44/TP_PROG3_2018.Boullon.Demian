@@ -33,7 +33,6 @@ class OrderRepository
 
                 $orderItem->SetName($row["name"]);
                 $orderItem->SetSector($row["sector"]);
-                // echo "WEEEE";
                 // var_dump($arrayOrders[count($arrayOrders) - 1]);
                 $arrayOrderItem = $arrayOrders[count($arrayOrders) - 1]->GetItems();
 
@@ -83,7 +82,6 @@ class OrderRepository
 
     public static function GetPendings(string $imgUrl, string $user)
     {
-        echo "$user";
         $arrayOrders = [];
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
@@ -118,8 +116,6 @@ class OrderRepository
                 $orderItem->SetCant($row["cant"]);
                 $orderItem->SetName($row["name"]);
                 $orderItem->SetSector($row["sector"]);
-                // echo "WEEEE";
-                // var_dump($arrayOrders[count($arrayOrders) - 1]);
                 $arrayOrderItem = $arrayOrders[count($arrayOrders) - 1]->GetItems();
                 $array = $arrayOrders[count($arrayOrders) - 1]->GetItems();
                 array_push($arrayOrderItem, $orderItem);
@@ -152,7 +148,7 @@ class OrderRepository
         $row = $consulta->fetch();
         if ($row) {
 
-            $order = new Order($row["client_name"], $row["code"], $row["mesa_id"]);
+            $order = new Order($row["client_name"], $row["code"],$row["mesa_id"]);
             $order->SetStatus($row["status"]);
             $order->SetEstimateTime($row["estimate_time"]);
             $order->SetOrderedTime($row["ordered_time"]);
@@ -268,6 +264,8 @@ class OrderRepository
                 $succesResponse["mesaCode"] = $order->GetMesaCode();
                 $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $succesResponse);
             }
+
+            MesaRepository::SetStatus($order->GetMesaId(), MESA_STATUS::CON_CLIENTE_ESPERANDO_PEDIDO);
         } catch (PDOException $exception) {
             throw $exception;
         } catch (Exception $exception) {
@@ -335,12 +333,12 @@ class OrderRepository
     public static function ResolvePending(array $orderItems): ApiResponse
     {
         try {
+
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
             date_default_timezone_set('America/Argentina/Buenos_Aires');
             $fecha = date('Y/m/d H:i');
             $totalMinutes = 0;
             foreach ($orderItems as $key => $orderItem) {
-                $totalMinutes += $orderItem->stimatedTime;
 
                 $consulta = $objetoAccesoDato->RetornarConsulta('UPDATE order_item SET status= '
                     . ":status WHERE id=:id");
@@ -350,8 +348,6 @@ class OrderRepository
                 $consulta->execute();
             }
             $order = Self::GetByOrderItemId($orderItems[0]->id);
-            $stimatedDate = strtotime('+' . $totalMinutes . ' minute', strtotime($fecha));
-            $nuevafecha = date('Y/m/d H:i', $stimatedDate);
 
             $consulta = $objetoAccesoDato->RetornarConsulta('SELECT * FROM order_item WHERE order_id= :order_id');
             $consulta->bindValue(':order_id', $order->GetId(), PDO::PARAM_INT);
@@ -402,6 +398,9 @@ class OrderRepository
             $consulta->bindValue(':id', $id, PDO::PARAM_INT);
             $consulta->execute();
             $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, "Pedido entrgado."); // $succesResponse);
+
+            $order = Self::GetByOrderItemId($id);
+            MesaRepository::SetStatus($order->GetMesaId(),MESA_STATUS::CON_CLIENTES_COMIENDO);  
 
         } catch (PDOException $exception) {
             throw $exception;
@@ -471,9 +470,10 @@ class OrderRepository
             if ($key > 0) {
                 $mysqlQuery .= ",";
             }
+
             $mysqlQuery .= " " . $orderItem->id;
         }
-        $mysqlQuery .= ") AND items.sector  = :category";
+        $mysqlQuery .= ") AND items.sector  = :category AND  order_item.status = 0";
 
         $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
         $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
@@ -484,7 +484,39 @@ class OrderRepository
         if (count($rows) == count($orderItems)) {
             $return = true;
         } else {
-            $problem = "Ids corresponden a elementos que no pertenecen a la categoría de este usuario o no existe.";
+            $problem = "Ids corresponden a elementos que no pertenecen a la categoría de este usuario, ya fueron tomados o no existe.";
+        }
+
+        return $return;
+    }
+
+    public static function ExistOrderItemsToResolve(array $orderItems, int $category, string &$problem): bool
+    {
+        $idsFaltantes = [];
+        $idsEncontrados = [];
+        $return = false;
+
+        $mysqlQuery = "SELECT order_item.id, items.sector FROM order_item" .
+            " INNER JOIN items ON items.id = order_item.item_id WHERE order_item.id in ( ";
+        foreach ($orderItems as $key => $orderItem) {
+            if ($key > 0) {
+                $mysqlQuery .= ",";
+            }
+
+            $mysqlQuery .= " " . $orderItem->id;
+        }
+        $mysqlQuery .= ") AND items.sector  = :category AND  order_item.status = 1";
+
+        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+        $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+        $consulta->bindValue(':category', $category, PDO::PARAM_INT);
+        $consulta->execute();
+        $rows = $consulta->fetchAll();
+
+        if (count($rows) == count($orderItems)) {
+            $return = true;
+        } else {
+            $problem = "Ids corresponden a elementos que no pertenecen a la categoría de este usuario, ya fueron tomados o no existe.";
         }
 
         return $return;
@@ -555,15 +587,17 @@ class OrderRepository
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
 
             $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO order_evaluation
-                (order_code,mesa_evaluation,mesa_code ,mozo_id,mozo_evaluation,restaurant_evaluation)
+                (order_code,mesa_evaluation,mesa_code ,mozo_id,mozo_evaluation,
+                restaurant_evaluation,comentario)
                 values(:order_code,:mesa_evaluation,:mesa_code ,:mozo_id,:mozo_evaluation,
-                :restaurant_evaluation)');
+                :restaurant_evaluation,:comentario)');
             $consulta->bindValue(':order_code', $statistic->GetOrderCode(), PDO::PARAM_STR);
             $consulta->bindValue(':mesa_evaluation', $statistic->GetMesaEvaluation(), PDO::PARAM_INT);
             $consulta->bindValue(':mesa_code', $statistic->GetMesaCode(), PDO::PARAM_STR);
             $consulta->bindValue(':mozo_id', $statistic->GetMozoId(), PDO::PARAM_INT);
             $consulta->bindValue(':mozo_evaluation', $statistic->GetMozoEvaluation(), PDO::PARAM_INT);
             $consulta->bindValue(':restaurant_evaluation', $statistic->GetRestaurantEvaluation(), PDO::PARAM_INT);
+            $consulta->bindValue(':comentario', $statistic->GetComentario(), PDO::PARAM_STR);
             $consulta->execute();
 
             foreach ($statistic->GetCocineros() as $cocinero) {
@@ -652,6 +686,7 @@ class OrderRepository
             $flag = true;
             foreach ($consulta->fetchAll() as $row) {
                 if ($flag) {
+                    $flag = false;
                     $max["total"] = $row["total"];
                     $max["id"] = $row["item_id"];
                     $max["name"] = $row["name"];
@@ -671,7 +706,7 @@ class OrderRepository
                     }
                 }
             }
-            
+
             $demoradosCancelados = Self::GetCanceladosDemorados();
             $respuesta["menosPedido"] = $min;
             $respuesta["masPedido"] = $max;
@@ -720,6 +755,56 @@ class OrderRepository
             $respuesta["demorados"] = $demorados;
             $respuesta["cancelados"] = $cancelados;
             return $respuesta;
+
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $return;
+    }
+
+    public static function CheckEvaluation($orderCode)
+    {
+        $return = false;
+        try {
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+            $mysqlQuery = 'SELECT id FROM order_evaluation
+
+            WHERE order_evaluation.order_code = :code';
+            $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+            $consulta->bindValue(':code', $orderCode, PDO::PARAM_STR);
+            $consulta->execute();
+            $row = $consulta->fetchAll();
+            if ($row) {
+                $return = true;
+            }
+
+        } catch (PDOException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+        return $return;
+    }
+    public static function ExistOrderCOde($orderCode)
+    {
+        $return = false;
+        try {
+            $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+            $mysqlQuery = 'SELECT id FROM orders
+            WHERE orders.code = :code';
+            $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
+            $consulta->bindValue(':code', $orderCode, PDO::PARAM_STR);
+            $consulta->execute();
+            $row = $consulta->fetchAll();
+            if ($row) {
+                $return = true;
+            }
 
         } catch (PDOException $exception) {
             throw $exception;

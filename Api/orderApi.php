@@ -2,10 +2,6 @@
 
 class OrderApi
 {
-    public function GetOne($request, $response, $args)
-    {
-    }
-
     public function GetAll($request, $response, $args)
     {
         try {
@@ -27,9 +23,9 @@ class OrderApi
     {
         try {
 
-            $header = $request->getHeaders();
-            $mesaCode = $header["HTTP_MESACODE"][0];
-            $orderCode = $header["HTTP_ORDERCODE"][0];
+            $parsedBody = $request->getParsedBody();
+            $mesaCode = $parsedBody["mesaCode"];
+            $orderCode = $parsedBody["orderCode"];
 
             $result = OrderRepository::GetStateOrder($orderCode, $mesaCode);
 
@@ -61,8 +57,10 @@ class OrderApi
     public function ResolvePendings($request, $response, $args)
     {
         try {
-            $orderItems = $response->getHeader("orderItems");
-            $orderItem = json_decode($orderItems[0]);
+            $parsedBody = $request->getParsedBody();
+            $orderItems = $parsedBody["orderItems"];
+            $user = $response->getHeader("userInfo");
+            $orderItem = json_decode($orderItems);
             $user = $response->getHeader("userInfo");
             UserActionRepository::SaveByUser("Pedido listo", $user[1]);
             $result = OrderRepository::ResolvePending($orderItem);
@@ -187,9 +185,8 @@ class OrderApi
     public function GetOrderInfoToEvaluate($request, $response, $args)
     {
         try {
-          
-            $header = $request->getHeaders();
-            $result = OrderRepository::GetOrderInfoToEvaluate($header["HTTP_ORDERCODE"][0]);
+            $parsedBody = $request->getParsedBody();
+            $result = OrderRepository::GetOrderInfoToEvaluate($parsedBody["orderCode"]);
         } catch (PDOException $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {
@@ -211,17 +208,18 @@ class OrderApi
             $statisctic->SetOrderCode($parsedBody["orderCode"]);
             $statisctic->SetCocineros(json_decode($parsedBody["cocineros"]));
             $statisctic->SetRestaurantEvaluation($parsedBody["restaurantEvaluation"]);
-
-            $result = OrderRepository::SetEvaluation($statisctic);
+            $statisctic->SetRestaurantComentario($parsedBody["comentario"]);
+            echo "SADOJSAD";
+            // $result = OrderRepository::SetEvaluation($statisctic);
         } catch (PDOException $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
         }
 
-        $response->getBody()->write($result->ToJsonResponse());
+       // $response->getBody()->write($result->ToJsonResponse());
     }
-   
+
     public function ResumenPedidos($request, $response, $args)
     {
         try {

@@ -20,7 +20,8 @@ class ItemRepository
                 $item["id"]= $row["id"];
                 $item["name"]= $row["name"];
                 $item["precio"]= $row["precio"];
-                $item["sector"]= $row["sector"];
+                $item["sector"]= ITEM_TYPE::String($row["sector"]);
+                $item["sectorNumeric"]= $row["sector"];
                 array_push($array, $item);
             }
             $return = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, $array);

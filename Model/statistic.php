@@ -8,6 +8,7 @@ class Statisctic
     private $mesaEvaluation;
     private $mesaCode;
     private $orderCode;
+    private $comentario;
 
     /// Getters
     public function GetMozo()
@@ -35,6 +36,11 @@ class Statisctic
     public function GetMesaCode()
     {
         return $this->mesaCode;
+    }
+
+    public function GetComentario()
+    {
+        return $this->comentario;
     }
 
     public function GetOrderCode()
@@ -81,6 +87,10 @@ class Statisctic
     public function SetRestaurantEvaluation(int $restaurantEvaluation)
     {
         $this->restaurantEvaluation = $restaurantEvaluation;
+    }
+    public function SetRestaurantComentario(string $comentario)
+    {
+        $this->comentario = $comentario;
     }
 
     public function SetCocineros(array $cocineros)

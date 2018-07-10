@@ -7,5 +7,6 @@ class ORDER_STATUS
     const READY = 2;
     const DELIVERED = 3;
     const EATED = 4;
-    const CANCELED = 5;
+    const CLOSE = 5;
+    const CANCELED = 6;
 }

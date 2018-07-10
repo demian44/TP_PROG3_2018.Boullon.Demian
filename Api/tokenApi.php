@@ -1,19 +1,10 @@
 <?php
 
-class TokenApi implements IApiUsable
+class TokenApi
 {
-    public function GetOne($request, $response, $args)
-    {
-        echo "Llego";
-    }
-
     public function Ver($request, $response, $args)
     {
         $response->getBody()->write('Hola');
-    }
-
-    public function GetAll($request, $response, $args)
-    {
     }
 
     public function Login($request, $response, $args)
@@ -60,54 +51,9 @@ class TokenApi implements IApiUsable
         $response->getBody()->write($result);
     }
 
-    public function CargarUno($request, $response, $args)
-    {
-    }
+   
 
-    public function BorrarUno($request, $response, $args)
-    {
-    }
-
-    public function ModificarUno($request, $response, $args)
-    {
-    }
-
-    public function ValidarToken($request, $response, $next)
-    {
-        echo "ajdpasjdposajdposadpoasjdsa";
-        // $return = false;
-        // try {
-        //     $header = $request->getHeader('token');
-        //     $tk = new SecurityToken();
-
-        //     if (count($header) > 0) {
-        //         $decodedUser = $tk->Decode($header[0]);
-        //         $userInfo["category"] = $decodedUser->category;
-        //         $userInfo["user"]=$decodedUser->user;
-
-        //         $newResponse = $response->withAddedHeader("userInfo",$userInfo );
-        //         UserActionRepository::Save('login',$row["id"]);
-        //         $return = true;
-        //     } else {
-        //         $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, "Falta token");
-        //         $response->getBody()->write($apiResponse->ToJsonResponse());
-        //     }
-        // } catch (BeforeValidException $exception) {
-        //     $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
-        //     $response->getBody()->write($apiResponse->ToJsonResponse());
-        // } catch (ExpiredException $exception) {
-        //     $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
-        //     $response->getBody()->write($apiResponse->ToJsonResponse());
-        // } catch (SignatureInvalidException $exception) {
-        //     $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
-        //     $response->getBody()->write($apiResponse->ToJsonResponse());
-        // } catch (Exception $exception) {
-        //     $apiResponse = new ApiResponse(REQUEST_ERROR_TYPE::TOKEN, $exception->getMessage());
-        //     $response->getBody()->write($apiResponse->ToJsonResponse());
-        // }
-
-        return $return;
-    }
+   
 
     public function ValidarMozo($request, $response, $args)
     {

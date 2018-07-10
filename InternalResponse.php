@@ -15,7 +15,6 @@ class InternalResponse
     ///Getters
     public function GetError()
     {
-        echo "\n----";
         var_dump($this->error);
 
         return $this->error;

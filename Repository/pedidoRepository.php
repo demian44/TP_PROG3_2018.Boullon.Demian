@@ -32,7 +32,6 @@ class PedidoRepository
              $consulta = $objetoAccesoDato->RetornarConsulta("INSERT INTO pedidos (cliente)"
                  . "VALUES(:cliente)");
              $consulta->bindValue(':cliente', $pedido->GetCliente(), PDO::PARAM_STR);
-             echo "\n";
              if (!$consulta->execute()) //Si no retorna 1 no guardó el elemento
              $response->SetMessege("Error al guardar al pedido en la base de datos.");
 
