@@ -15,11 +15,11 @@ class AccesoDatos
                 array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
             $this->_objetoPDO->exec('SET CHARACTER SET utf8');
             
-            // $this->_objetoPDO = new PDO(
-            //     'mysql:host=localhost;dbname=id6442020_la_comanda;charset=utf8',
-            //     'id6442020_demianbo	', 'zorro001',
-            //     array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
-            // $this->_objetoPDO->exec('SET CHARACTER SET utf8');
+                // $this->_objetoPDO = new PDO(
+                //     'mysql:host=localhost;dbname=id6442020_la_comanda;charset=utf8',
+                //     'id6442020_demianbo	', 'zorro001',
+                //     array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+                // $this->_objetoPDO->exec('SET CHARACTER SET utf8');
         } catch (PDOException $e) {
             echo 'Error!!!<br/>' . $e->getMessage();
 
