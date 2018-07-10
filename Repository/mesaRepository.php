@@ -19,7 +19,7 @@ class MesaRepository
                 $mesa = new Mesa();
                 $mesa->SetId($row["id"]);
                 $mesa->SetCode($row["code"]);
-                $mesa->SetStatus($row["status"]);
+                $mesa->SetStatus(MESA_STATUS::String($row["status"]));
                 array_push($arrayMesa, $mesa->ToJson());
 
             }
@@ -99,19 +99,19 @@ class MesaRepository
 
         return $return;
     }
- 
-    public static function IsFree(int $id):bool
+
+    public static function IsFree(int $id): bool
     {
         $return = false;
         $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-        $consulta = $objetoAccesoDato->RetornarConsulta('SELECT id FROM mesas WHERE id in (:id) 
+        $consulta = $objetoAccesoDato->RetornarConsulta('SELECT id FROM mesas WHERE id in (:id)
          AND status = 0');
         $consulta->bindValue(':id', $id, PDO::PARAM_INT);
         $consulta->execute();
-        
+
         $row = $consulta->fetch();
         if ($row) {
-           $return = true;
+            $return = true;
         }
 
         return $return;
@@ -175,15 +175,13 @@ class MesaRepository
                 $consulta->bindValue(':status', ORDER_STATUS::EATED, PDO::PARAM_INT);
                 $consulta->execute();
             }
-         
+
             if ($status == MESA_STATUS::CERRADA) {
                 $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
                 $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE orders set status = " .
-                    ":status WHERE mesa_id = :id AND status = 4");
+                    ORDER_STATUS::CLOSE . " WHERE mesa_id = :id AND status = 4");
                 $consulta->bindValue(':id', $id, PDO::PARAM_INT);
-                $consulta->bindValue(':status', ORDER_STATUS::CLOSE, PDO::PARAM_INT);
                 $consulta->execute();
-
                 $consulta = $objetoAccesoDato->RetornarConsulta("UPDATE order_item
                 set order_item.status = :status
                 WHERE order_item.order_id = (SELECT MAX(id) FROM orders WHERE orders.mesa_id = :id )");

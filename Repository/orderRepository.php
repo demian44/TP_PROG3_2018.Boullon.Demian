@@ -147,7 +147,7 @@ class OrderRepository
         $consulta->execute(array(':orderItemId' => $orderItemId));
         $row = $consulta->fetch();
         if ($row) {
-
+            
             $order = new Order($row["client_name"], $row["code"],$row["mesa_id"]);
             $order->SetStatus($row["status"]);
             $order->SetEstimateTime($row["estimate_time"]);
@@ -155,6 +155,30 @@ class OrderRepository
             $order->SetFoto($row["delivered_time"]);
             $order->SetId($row["id"]);
         }
+        
+        return $order;
+    }
+   
+    public static function GetByOrderId(int $id): Order
+    {
+        $order = null;
+        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
+
+        $consulta = $objetoAccesoDato->RetornarConsulta('SELECT * FROM orders
+            
+            WHERE id = :id');
+        $consulta->execute(array(':id' => $id));
+        $row = $consulta->fetch();
+        if ($row) {
+            
+            $order = new Order($row["client_name"], $row["code"],$row["mesa_id"]);
+            $order->SetStatus($row["status"]);
+            $order->SetEstimateTime($row["estimate_time"]);
+            $order->SetOrderedTime($row["ordered_time"]);
+            $order->SetFoto($row["delivered_time"]);
+            $order->SetId($row["id"]);
+        }
+        
         return $order;
     }
 
@@ -387,19 +411,20 @@ class OrderRepository
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
             date_default_timezone_set('America/Argentina/Buenos_Aires');
             $fecha = date('Y/m/d H:i');
-
+            
             $consulta = $objetoAccesoDato->RetornarConsulta('UPDATE orders set status = '
-                . ORDER_STATUS::DELIVERED . ', delivered_time =  "' . $fecha . '" WHERE id= :id');
+            . ORDER_STATUS::DELIVERED . ', delivered_time =  "' . $fecha . '" WHERE id= :id');
             $consulta->bindValue(':id', $id, PDO::PARAM_INT);
             $consulta->execute();
-
+            
             $consulta = $objetoAccesoDato->RetornarConsulta('UPDATE order_item set status = ' . ORDER_STATUS::DELIVERED .
-                ' WHERE order_id= :id');
+            ' WHERE order_id= :id');
             $consulta->bindValue(':id', $id, PDO::PARAM_INT);
             $consulta->execute();
             $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, "Pedido entrgado."); // $succesResponse);
-
-            $order = Self::GetByOrderItemId($id);
+            
+            $order = Self::GetByOrderId($id);
+            
             MesaRepository::SetStatus($order->GetMesaId(),MESA_STATUS::CON_CLIENTES_COMIENDO);  
 
         } catch (PDOException $exception) {
@@ -585,7 +610,7 @@ class OrderRepository
 
         try {
             $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-
+            
             $consulta = $objetoAccesoDato->RetornarConsulta('INSERT INTO order_evaluation
                 (order_code,mesa_evaluation,mesa_code ,mozo_id,mozo_evaluation,
                 restaurant_evaluation,comentario)
@@ -609,7 +634,7 @@ class OrderRepository
                 $consulta->bindValue(':cocinero_id', $cocinero->id, PDO::PARAM_INT);
                 $consulta->execute();
             }
-
+            
             $response = new ApiResponse(REQUEST_ERROR_TYPE::NOERROR, "Evaluacion entregada"); // $succesResponse);
 
         } catch (PDOException $exception) {
@@ -635,11 +660,10 @@ class OrderRepository
             users.name as mozo,users.id as mozo_id FROM orders
             INNER JOIN mesas ON orders.mesa_id = mesas.id
             INNER JOIN users ON orders.mozo_id = users.id
-            WHERE orders.code = :code AND orders.status = :status ';
+            WHERE orders.code = :code';
 
             $consulta = $objetoAccesoDato->RetornarConsulta($mysqlQuery);
             $consulta->bindValue(':code', $orderCode, PDO::PARAM_STR);
-            $consulta->bindValue(':status', ORDER_STATUS::EATED, PDO::PARAM_INT);
             $consulta->execute();
 
             $row = $consulta->fetch();

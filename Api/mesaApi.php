@@ -1,14 +1,7 @@
 <?php
 
-class MesaApi implements IApiUsable
+class MesaApi
 {
-    public function GetOne($request, $response, $args)
-    {
-    }
-
-    public function Ver($request, $response, $args)
-    {
-    }
 
     public function GetAll($request, $response, $args)
     {
@@ -54,18 +47,6 @@ class MesaApi implements IApiUsable
         $response->getBody()->write($result->ToJsonResponse());
     }
 
-    private function SaveOrder($order)
-    {
-    }
-
-    public function BorrarUno($request, $response, $args)
-    {
-    }
-
-    public function ModificarUno($request, $response, $args)
-    {
-    }
-
     public function Waiting($request, $response, $args)
     {
         $parsedBody = $request->getParsedBody();
@@ -88,6 +69,7 @@ class MesaApi implements IApiUsable
     {
         $parsedBody = $request->getParsedBody();
         $mesaId = $parsedBody["mesaId"];
+        
         $this->SetStatus($request, $response, $args, $mesaId[0], MESA_STATUS::CERRADA);
     }
 
@@ -96,7 +78,7 @@ class MesaApi implements IApiUsable
         try {
             $userInfo = $response->getHeader("userInfo");
             UserActionRepository::SaveByUser("Cambiar estado de la mesa.", $userInfo[1]);
-            
+
             $result = MesaRepository::SetStatus($id, $status);
         } catch (PDOException $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());

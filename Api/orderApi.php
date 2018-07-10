@@ -79,6 +79,7 @@ class OrderApi
         $userInfo = $response->getHeader("userInfo");
         try {
             UserActionRepository::SaveByUser("Pedido entregado", $userInfo[1]);
+            
             $result = OrderRepository::DeliverOder($orderId[0]);
         } catch (PDOException $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
@@ -209,15 +210,14 @@ class OrderApi
             $statisctic->SetCocineros(json_decode($parsedBody["cocineros"]));
             $statisctic->SetRestaurantEvaluation($parsedBody["restaurantEvaluation"]);
             $statisctic->SetRestaurantComentario($parsedBody["comentario"]);
-            echo "SADOJSAD";
-            // $result = OrderRepository::SetEvaluation($statisctic);
+            $result = OrderRepository::SetEvaluation($statisctic);
         } catch (PDOException $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::DATABASE, $exception->getMessage());
         } catch (Exception $exception) {
             $result = new ApiResponse(REQUEST_ERROR_TYPE::GENERAL, $exception->getMessage());
         }
 
-       // $response->getBody()->write($result->ToJsonResponse());
+        $response->getBody()->write($result->ToJsonResponse());
     }
 
     public function ResumenPedidos($request, $response, $args)

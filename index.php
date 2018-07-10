@@ -19,7 +19,7 @@ $app->group('/order', function () {
 
     $this->post('/resolvePendings', \OrderApi::class . ':ResolvePendings')
         ->add(\OrderMiddleware::class . ':ExistOrderItemsToResolve')
-        ->add(\OrderMiddleware::class . ':CheckTakedOrders');
+        ->add(\OrderMiddleware::class . ':CheckTakedOrdersResolve');
 
     $this->post('/deliverOrder', \OrderApi::class . ':DeliverOrder')
         ->add(\OrderMiddleware::class . ':CheckOrder')

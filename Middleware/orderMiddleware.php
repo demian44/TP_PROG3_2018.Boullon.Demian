@@ -3,6 +3,7 @@ class OrderMiddleware
 {
     public function CheckCarga($request, $response, $next)
     {
+        
         $flag = false;
         $parsedBody = $request->getParsedBody();
         $file = $request->getUploadedFiles();
@@ -93,6 +94,45 @@ class OrderMiddleware
 
         return $response;
     }
+    public function CheckTakedOrdersResolve($request, $response, $next)
+    {
+        $flag = false;
+        $parsedBody = $request->getParsedBody();
+        $file = $request->getUploadedFiles();
+        $destino = './fotos/';
+        $mensaje = 'Faltan datos';
+        $array = [];
+        $orderItemsFlag = false;
+        if (isset($parsedBody['orderItems']) && json_decode($parsedBody['orderItems']) != null) {
+            $orderItems = json_decode($parsedBody['orderItems']);
+
+            foreach ($orderItems as $value) {
+                if (property_exists($value, "id")) {
+                    $orderItemsFlag = true;
+                    array_push($array, $value);
+                }
+                else{
+                    $orderItemsFlag = false;
+                    
+                    break;
+                }
+            }
+            if($orderItemsFlag){
+            //Validamos y cargamos en un arrat a los orderItems;
+            $newResponse = $response->withAddedHeader("orderItems", json_encode($array));    
+            $response = $next($request, $newResponse);
+            }
+            else{
+                $respuesta = new ApiResponse(REQUEST_ERROR_TYPE::NODATA,
+                'orderItems: Elementos corrompidos');
+                $response->getBody()->write($respuesta->ToJsonResponse());
+            }
+        } else {
+
+        }
+
+        return $response;
+    }
 
     public function CheckUserTaking($request, $response, $next)
     {
@@ -114,6 +154,7 @@ class OrderMiddleware
         if (isset($parsedBody["orderId"])) {
             $file = $request->getUploadedFiles();
             $newResponse = $response->withAddedHeader("orderId", $parsedBody["orderId"]);
+            
             $response = $next($request, $newResponse);
         } else {
             $response->getBody()->write("Falta cargar el id de la orden");
